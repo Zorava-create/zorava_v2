@@ -21,11 +21,11 @@ export const themes = {
   subtext: "#6b6b6b",
   },
   luxe: {
-    background: "#1a1a1a",
-    card: "#2a2a2a",
-    primary: "#d4af37",
-    text: "#ffffff",
-    subtext: "#cccccc",
+  background: "#121212",        // softer black
+  card: "#1e1e1e",             // layered dark
+  primary: "#d4af37",          // proper gold
+  text: "#f5f5f5",
+  subtext: "#cfcfcf",
   },
   pride: {
   background: "linear-gradient(135deg, #fdf2f8, #e0f7fa, #fef9c3)",
