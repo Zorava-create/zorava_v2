@@ -2,7 +2,7 @@ import { themes } from "../themes";
 
 // 👉 Change this to test different themes:
 // classic | blush | rustic | luxe
-const theme = themes.luxe;
+const theme = themes.rustic;
 
 export default function UploadPage() {
   return (
