@@ -13,12 +13,12 @@ export const themes = {
     text: "#222",
     subtext: "#888",
   },
-  rustic: {
-    background: "#f4f1ec",
-    card: "#ffffff",
-    primary: "#7a8b6f",
-    text: "#222",
-    subtext: "#666",
+ rustic: {
+  background: "#f4f1ec",
+  card: "#ffffff",
+  primary: "#7a8b6f",
+  text: "#2e2e2e",
+  subtext: "#6b6b6b",
   },
   luxe: {
     background: "#1a1a1a",
@@ -27,4 +27,25 @@ export const themes = {
     text: "#ffffff",
     subtext: "#cccccc",
   },
+  pride: {
+  background: "linear-gradient(135deg, #fdf2f8, #e0f7fa, #fef9c3)",
+  card: "#ffffff",
+  primary: "#ff6b6b",
+  text: "#222",
+  subtext: "#666",
+},
+  winter: {
+  background: "#f4f8fb",
+  card: "#ffffff",
+  primary: "#7da9c4",
+  text: "#222",
+  subtext: "#666",
+},
+midnight: {
+  background: "#0f172a",
+  card: "#1e293b",
+  primary: "#6366f1",
+  text: "#ffffff",
+  subtext: "#cbd5f5",
+},
 };
