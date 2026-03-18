@@ -2,7 +2,7 @@ import { themes } from "../themes";
 
 // 👉 Change this to test different themes:
 // classic | blush | rustic | luxe | pride | winter | midnight
-const theme = themes.rustic;
+const theme = themes.luxe;
 
 export default function UploadPage() {
   return (
@@ -49,6 +49,7 @@ const styles = {
   card: {
     background: theme.card,
     padding: "40px 30px",
+    border: "1px solid rgba(212,175,55,0.15)",
     borderRadius: "18px",
     boxShadow: "0 8px 30px rgba(0,0,0,0.05)",
     textAlign: "center",
@@ -70,17 +71,17 @@ const styles = {
   },
 
   uploadButton: {
-    background: theme.primary,
-    color: "#fff",
-    border: "none",
-    padding: "16px",
-    borderRadius: "10px",
-    width: "100%",
-    fontSize: "16px",
-    fontWeight: "500",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(212,175,55,0.3)",
-    marginBottom: "15px",
+  background: theme.primary,
+  color: "#fff",
+  border: "none",
+  padding: "16px",
+  borderRadius: "10px",
+  width: "100%",
+  fontSize: "16px",
+  fontWeight: "500",
+  cursor: "pointer",
+  boxShadow: "0 4px 15px rgba(212,175,55,0.3)", // ✨ gold glow
+  marginBottom: "15px",
   },
 
   link: {
