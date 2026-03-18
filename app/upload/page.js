@@ -1,17 +1,24 @@
-
 export default function UploadPage() {
   return (
     <main style={styles.container}>
+      <div style={styles.header}>
+        <h1 style={styles.logo}>Zorava</h1>
+        <p style={styles.tagline}>Scan. Upload. Share Memories.</p>
+      </div>
+
       <div style={styles.card}>
-        <h1 style={styles.title}>Upload Your Photos</h1>
+        <h2 style={styles.title}>Add Your Moments 📸</h2>
         <p style={styles.subtitle}>
-          Scan, upload & share your memories 📸
+          Upload your photos and be part of the story
         </p>
 
-        <input type="file" multiple style={styles.input} />
+        <label style={styles.uploadBox}>
+          <input type="file" multiple style={{ display: "none" }} />
+          <span style={styles.uploadText}>Tap to upload photos</span>
+        </label>
 
         <button style={styles.button}>
-          Upload Photos
+          Upload Now
         </button>
       </div>
     </main>
@@ -21,39 +28,62 @@ export default function UploadPage() {
 const styles = {
   container: {
     minHeight: "100vh",
-    background: "#f5f5f5",
+    background: "#fdf6f0",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    padding: "20px",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "30px",
+  },
+  logo: {
+    fontSize: "28px",
+    fontWeight: "600",
+  },
+  tagline: {
+    fontSize: "14px",
+    color: "#888",
   },
   card: {
     background: "#fff",
     padding: "30px",
-    borderRadius: "16px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+    borderRadius: "20px",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
     textAlign: "center",
-    width: "90%",
-    maxWidth: "400px",
+    width: "100%",
+    maxWidth: "420px",
   },
   title: {
-    fontSize: "24px",
+    fontSize: "20px",
     marginBottom: "10px",
   },
   subtitle: {
     fontSize: "14px",
-    color: "#666",
+    color: "#777",
     marginBottom: "20px",
   },
-  input: {
+  uploadBox: {
+    border: "2px dashed #f4a261",
+    padding: "30px",
+    borderRadius: "12px",
+    cursor: "pointer",
     marginBottom: "20px",
+  },
+  uploadText: {
+    color: "#f4a261",
+    fontWeight: "500",
   },
   button: {
     background: "#f4a261",
     color: "#fff",
     border: "none",
-    padding: "12px 20px",
-    borderRadius: "8px",
-    cursor: "pointer",
+    padding: "14px",
+    borderRadius: "10px",
     width: "100%",
+    fontSize: "16px",
+    cursor: "pointer",
   },
 };
