@@ -79,7 +79,7 @@ const styles = {
     fontSize: "16px",
     fontWeight: "500",
     cursor: "pointer",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 15px rgba(212,175,55,0.3)",
     marginBottom: "15px",
   },
 
