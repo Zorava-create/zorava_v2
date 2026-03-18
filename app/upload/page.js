@@ -1,25 +1,21 @@
 export default function UploadPage() {
   return (
     <main style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.logo}>Zorava</h1>
-        <p style={styles.tagline}>Scan. Upload. Share Memories.</p>
-      </div>
-
       <div style={styles.card}>
-        <h2 style={styles.title}>Add Your Moments 📸</h2>
+        <h1 style={styles.title}>Emma & Jake’s Wedding</h1>
         <p style={styles.subtitle}>
-          Upload your photos and be part of the story
+          Share your photos from our special day.
         </p>
 
-        <label style={styles.uploadBox}>
-          <input type="file" multiple style={{ display: "none" }} />
-          <span style={styles.uploadText}>Tap to upload photos</span>
-        </label>
-
-        <button style={styles.button}>
-          Upload Now
+        <button style={styles.uploadButton}>
+          📷 Upload Photos
         </button>
+
+        <p style={styles.link}>❤️ View Gallery</p>
+
+        <p style={styles.footer}>
+          No app needed · Takes seconds
+        </p>
       </div>
     </main>
   );
@@ -28,62 +24,52 @@ export default function UploadPage() {
 const styles = {
   container: {
     minHeight: "100vh",
-    background: "#fdf6f0",
+    background: "#f7f3ef",
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     padding: "20px",
   },
-  header: {
-    textAlign: "center",
-    marginBottom: "30px",
-  },
-  logo: {
-    fontSize: "28px",
-    fontWeight: "600",
-  },
-  tagline: {
-    fontSize: "14px",
-    color: "#888",
-  },
   card: {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "20px",
-    boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
+    background: "#ffffff",
+    padding: "40px 30px",
+    borderRadius: "18px",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.05)",
     textAlign: "center",
     width: "100%",
     maxWidth: "420px",
   },
   title: {
-    fontSize: "20px",
+    fontSize: "22px",
+    fontWeight: "500",
     marginBottom: "10px",
   },
   subtitle: {
     fontSize: "14px",
     color: "#777",
-    marginBottom: "20px",
+    marginBottom: "25px",
   },
-  uploadBox: {
-    border: "2px dashed #f4a261",
-    padding: "30px",
-    borderRadius: "12px",
-    cursor: "pointer",
-    marginBottom: "20px",
-  },
-  uploadText: {
-    color: "#f4a261",
-    fontWeight: "500",
-  },
-  button: {
-    background: "#f4a261",
+  uploadButton: {
+    background: "#c89b3c",
     color: "#fff",
     border: "none",
-    padding: "14px",
+    padding: "16px",
     borderRadius: "10px",
     width: "100%",
     fontSize: "16px",
+    fontWeight: "500",
     cursor: "pointer",
+    boxShadow: "0 4px 10px rgba(200,155,60,0.3)",
+    marginBottom: "15px",
+  },
+  link: {
+    fontSize: "14px",
+    color: "#444",
+    cursor: "pointer",
+    marginBottom: "20px",
+  },
+  footer: {
+    fontSize: "12px",
+    color: "#aaa",
   },
 };
