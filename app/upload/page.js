@@ -74,7 +74,6 @@ export default function UploadPage() {
               type="file"
               multiple
               accept="image/*"
-              capture="environment"
               onChange={handleFiles}
               style={{ display: "none" }}
             />
