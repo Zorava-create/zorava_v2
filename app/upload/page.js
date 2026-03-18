@@ -2,7 +2,7 @@ import { themes } from "../themes";
 
 // 👉 Change this to test different themes:
 // classic | blush | rustic | luxe | pride | winter | midnight
-const theme = themes.classic;
+const theme = themes.luxe;
 
 export default function UploadPage() {
   return (
