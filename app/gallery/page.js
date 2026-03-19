@@ -100,24 +100,25 @@ export default function GalleryPage() {
     />
 
     {/* BACK TO TOP BUTTON */}
-      <button
-  onClick={() =>
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-  style={styles.backToTop}
->
-  ↑ Top
-</button>
+    <button
+      onClick={() =>
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      }
+      style={styles.backToTop}
+    >
+      ↑ Top
+    </button>
 
     {/* FLOATING UPLOAD BUTTON */}
-  <button
-  style={styles.uploadBtn}
-  onClick={() => router.push("/upload")}
->
-  📷 Upload Images
-</button>    
-    </main>
-  );
+    <button
+      style={styles.uploadBtn}
+      onClick={() => router.push("/upload")}
+    >
+      📷 Upload Images
+    </button>
+
+  </main>
+);
 }
 
 const styles = {
@@ -128,9 +129,9 @@ const styles = {
 
   card: {
     padding: "16px",
-},
+  },
 
-header: {
+  header: {
     textAlign: "center",
     marginBottom: "12px",
   },
@@ -177,51 +178,52 @@ header: {
     border: "none",
     fontSize: "13px",
   },
-  
+
   uploadBtn: {
-  position: "fixed",
-  bottom: "20px",
-  right: "16px",
+    position: "fixed",
+    bottom: "20px",
+    right: "16px",
 
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
 
-  padding: "12px 16px",
-  borderRadius: "999px",
+    padding: "12px 16px",
+    borderRadius: "999px",
 
-  background: "#c6a46c", // theme gold
-  color: "#fff",
+    background: "#c6a46c",
+    color: "#fff",
 
-  fontSize: "14px",
-  fontWeight: "500",
+    fontSize: "14px",
+    fontWeight: "500",
 
-  border: "none",
-  cursor: "pointer",
+    border: "none",
+    cursor: "pointer",
 
-  boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
-},
+    boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
+  },
 
   backToTop: {
-  position: "fixed",
-  bottom: "20px",
-  left: "16px", // 👈 opposite side of upload
+    position: "fixed",
+    bottom: "20px",
+    left: "16px",
 
-  display: "flex",
-  alignItems: "center",
-  gap: "6px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
 
-  padding: "12px 14px",
-  borderRadius: "999px",
+    padding: "12px 14px",
+    borderRadius: "999px",
 
-  background: "#c6a46c",
-  color: "#fff",
+    background: "#c6a46c",
+    color: "#fff",
 
-  fontSize: "13px",
-  fontWeight: "500",
+    fontSize: "13px",
+    fontWeight: "500",
 
-  border: "none",
-  cursor: "pointer",
+    border: "none",
+    cursor: "pointer",
 
-  boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
+  },
 };
