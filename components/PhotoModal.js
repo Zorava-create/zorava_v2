@@ -8,17 +8,25 @@ export default function PhotoModal({ photos, index, onClose }) {
 
   const photo = photos[index];
 
-  // ❤️ Likes
   const [likes, setLikes] = useState(photo.likes || 0);
-
-  // 💬 Comments
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [name, setName] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const [hearts, setHearts] = useState([]);
 
-  // 👉 Like
+  // ❤️ LIKE
   const handleLike = async () => {
     const newLikes = likes + 1;
     setLikes(newLikes);
+
+    // floating hearts
+    const newHeart = { id: Date.now() };
+    setHearts((prev) => [...prev, newHeart]);
+
+    setTimeout(() => {
+      setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
+    }, 1000);
 
     await supabase
       .from("photos")
@@ -26,7 +34,7 @@ export default function PhotoModal({ photos, index, onClose }) {
       .eq("id", photo.id);
   };
 
-  // 👉 Fetch comments
+  // 💬 FETCH COMMENTS
   const fetchComments = async () => {
     const { data } = await supabase
       .from("comments")
@@ -37,7 +45,11 @@ export default function PhotoModal({ photos, index, onClose }) {
     setComments(data || []);
   };
 
-  // 👉 Add comment
+  useEffect(() => {
+    fetchComments();
+  }, [photo.id]);
+
+  // 💬 ADD COMMENT
   const addComment = async () => {
     if (!newComment) return;
 
@@ -45,16 +57,13 @@ export default function PhotoModal({ photos, index, onClose }) {
       {
         photo_id: photo.id,
         text: newComment,
+        name: name || "Guest",
       },
     ]);
 
     setNewComment("");
     fetchComments();
   };
-
-  useEffect(() => {
-    fetchComments();
-  }, [photo.id]);
 
   return (
     <div style={styles.overlay}>
@@ -67,28 +76,54 @@ export default function PhotoModal({ photos, index, onClose }) {
       {/* IMAGE */}
       <img src={`${photo.url}?width=1200`} style={styles.image} />
 
-      {/* LIKE */}
+      {/* FLOATING HEARTS */}
+      {hearts.map((h) => (
+        <span key={h.id} style={styles.floatingHeart}>❤️</span>
+      ))}
+
+      {/* ACTION BAR */}
       <div style={styles.actions}>
-        <span onClick={handleLike} style={styles.like}>
+        <span onClick={handleLike} style={styles.icon}>
           ❤️ {likes}
+        </span>
+
+        <span onClick={() => setShowComments(true)} style={styles.icon}>
+          💬 {comments.length}
         </span>
       </div>
 
-      {/* COMMENTS */}
-      <div style={styles.comments}>
-        {comments.map((c) => (
-          <p key={c.id}>{c.text}</p>
-        ))}
+      {/* COMMENTS PANEL */}
+      {showComments && (
+        <div style={styles.commentPanel}>
+          
+          <button style={styles.closePanel} onClick={() => setShowComments(false)}>
+            ✕
+          </button>
 
-        <div style={styles.commentInput}>
-          <input
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-          />
-          <button onClick={addComment}>Send</button>
+          <div style={styles.commentList}>
+            {comments.map((c) => (
+              <p key={c.id}>
+                <strong>{c.name || "Guest"}:</strong> {c.text}
+              </p>
+            ))}
+          </div>
+
+          <div style={styles.inputRow}>
+            <input
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button onClick={addComment}>Send</button>
+          </div>
+
         </div>
-      </div>
+      )}
 
     </div>
   );
@@ -110,7 +145,7 @@ const styles = {
 
   image: {
     maxWidth: "95%",
-    maxHeight: "80%",
+    maxHeight: "85%",
     borderRadius: "12px",
   },
 
@@ -119,36 +154,56 @@ const styles = {
     top: "20px",
     right: "20px",
     fontSize: "24px",
+    color: "#fff",
     background: "none",
     border: "none",
-    color: "#fff",
-    cursor: "pointer",
   },
 
   actions: {
     position: "absolute",
-    bottom: "80px",
+    bottom: "20px",
     left: "20px",
+    display: "flex",
+    gap: "15px",
     color: "#fff",
+    fontSize: "18px",
   },
 
-  like: {
-    fontSize: "18px",
+  icon: {
     cursor: "pointer",
   },
 
-  comments: {
+  floatingHeart: {
     position: "absolute",
-    bottom: "0",
+    bottom: "50%",
+    fontSize: "30px",
+    animation: "floatUp 1s ease-out forwards",
+  },
+
+  commentPanel: {
+    position: "absolute",
+    bottom: 0,
     width: "100%",
     background: "#111",
-    padding: "10px",
+    padding: "15px",
     color: "#fff",
   },
 
-  commentInput: {
+  closePanel: {
+    position: "absolute",
+    right: "10px",
+    top: "10px",
+  },
+
+  commentList: {
+    maxHeight: "200px",
+    overflowY: "auto",
+    marginBottom: "10px",
+  },
+
+  inputRow: {
     display: "flex",
+    flexDirection: "column",
     gap: "5px",
-    marginTop: "10px",
   },
 };
