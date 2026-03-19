@@ -10,20 +10,19 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
   }
 
   return (
-    <div style={styles.grid}>
-      {photos.map((photo, index) => (
-        <img
-          key={photo.id}
-          src={photo.url}
-          alt=""
-          loading="lazy"
-          style={styles.image}
-          onClick={() => onPhotoClick(index)}
-        />
-      ))}
-    </div>
-  );
-}
+<div style={styles.imageWrapper} key={photo.id}>
+  <img
+    src={`${photo.url}?width=600`}
+    style={styles.image}
+    onClick={() => onPhotoClick(index)}
+  />
+
+  {/* ACTIONS */}
+  <div style={styles.overlay}>
+    <span>❤️ {photo.likes || 0}</span>
+    <span>💬</span>
+  </div>
+</div>
 
 const styles = {
   grid: {
