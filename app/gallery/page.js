@@ -108,8 +108,6 @@ export default function GalleryPage() {
 >
   ↑ Top
 </button>
-    
-)}
 
     {/* FLOATING UPLOAD BUTTON */}
   <button
