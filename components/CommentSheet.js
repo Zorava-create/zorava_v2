@@ -7,19 +7,24 @@ export default function CommentSheet({ photo, onClose }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [name, setName] = useState("");
+  const [likedComments, setLikedComments] = useState({});
   const [translateY, setTranslateY] = useState(0);
-  const [dragging, setDragging] = useState(false);
 
   const startY = useRef(0);
-  const inputRef = useRef(null);
+  const dragging = useRef(false);
 
-  // Load name
+  // ✅ Load local data
   useEffect(() => {
-    const stored = localStorage.getItem("zorava_name");
-    if (stored) setName(stored);
+    const storedName = localStorage.getItem("zorava_name");
+    if (storedName) setName(storedName);
+
+    const storedLikes = JSON.parse(
+      localStorage.getItem("liked_comments") || "{}"
+    );
+    setLikedComments(storedLikes);
   }, []);
 
-  // Fetch comments
+  // ✅ Fetch comments
   const fetchComments = async () => {
     const { data } = await supabase
       .from("comments")
@@ -30,102 +35,123 @@ export default function CommentSheet({ photo, onClose }) {
     setComments(data || []);
   };
 
+  // ✅ Realtime updates
   useEffect(() => {
-    if (photo) {
-      fetchComments();
+    if (!photo) return;
 
-      // auto focus input
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300);
-    }
+    fetchComments();
+
+    const channel = supabase
+      .channel("comments")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "comments" },
+        () => fetchComments()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [photo]);
 
+  // ✅ Add comment (with instant UI)
   const handleSend = async () => {
     if (!text.trim()) return;
 
     const finalName = name || "Guest";
+
+    const newComment = {
+      id: Date.now(),
+      name: finalName,
+      text,
+      likes: 0,
+    };
+
+    setComments((prev) => [newComment, ...prev]); // instant UI
 
     await supabase.from("comments").insert([
       {
         photo_id: photo.id,
         text,
         name: finalName,
+        likes: 0,
       },
     ]);
 
     localStorage.setItem("zorava_name", finalName);
-
     setText("");
-    fetchComments();
   };
 
-  // 👇 TOUCH HANDLERS (SWIPE DOWN)
+  // 👍 LIKE TOGGLE (SVG style feel)
+  const toggleLikeComment = async (comment) => {
+    const key = `comment_${comment.id}`;
+    const isLiked = likedComments[key];
+
+    const newLikes = isLiked
+      ? Math.max((comment.likes || 0) - 1, 0)
+      : (comment.likes || 0) + 1;
+
+    setLikedComments((prev) => ({
+      ...prev,
+      [key]: !isLiked,
+    }));
+
+    await supabase
+      .from("comments")
+      .update({ likes: newLikes })
+      .eq("id", comment.id);
+  };
+
+  // ❌ DELETE
+  const deleteComment = async (comment) => {
+    if (comment.name !== name) return;
+
+    await supabase.from("comments").delete().eq("id", comment.id);
+  };
+
+  // 👇 SWIPE DOWN CLOSE
   const handleTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
-    setDragging(true);
+    dragging.current = true;
   };
 
   const handleTouchMove = (e) => {
-    if (!dragging) return;
+    if (!dragging.current) return;
 
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - startY.current;
-
-    if (diff > 0) {
-      setTranslateY(diff);
-    }
+    const diff = e.touches[0].clientY - startY.current;
+    if (diff > 0) setTranslateY(diff);
   };
 
   const handleTouchEnd = () => {
-    setDragging(false);
+    dragging.current = false;
 
-    if (translateY > 120) {
-      onClose(); // swipe to close
-    } else {
-      setTranslateY(0); // snap back
-    }
+    if (translateY > 120) onClose();
+    else setTranslateY(0);
   };
 
   if (!photo) return null;
 
   return (
     <div style={styles.overlay}>
-      
-      {/* BACKDROP */}
       <div style={styles.backdrop} onClick={onClose} />
 
-      {/* SHEET */}
       <div
         style={{
           ...styles.sheet,
           transform: `translateY(${translateY}px)`,
-          transition: dragging ? "none" : "transform 0.25s ease",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        
-        {/* HANDLE */}
         <div style={styles.handle} />
 
-        {/* HEADER */}
         <div style={styles.header}>
-          <span style={styles.title}>Comments</span>
+          Comments ({comments.length})
         </div>
 
-        {/* COMMENTS */}
-        <div style={styles.list}>
-          {comments.map((c) => (
-            <div key={c.id} style={styles.comment}>
-              <span style={styles.name}>{c.name}</span>
-              <span style={styles.text}>{c.text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* INPUT */}
+        {/* ✅ INPUT FIRST */}
         <div style={styles.inputArea}>
           <input
             placeholder="Your name"
@@ -136,7 +162,6 @@ export default function CommentSheet({ photo, onClose }) {
 
           <div style={styles.row}>
             <input
-              ref={inputRef}
               placeholder="Write a comment..."
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -149,6 +174,46 @@ export default function CommentSheet({ photo, onClose }) {
           </div>
         </div>
 
+        {/* ✅ COMMENTS BELOW */}
+        <div style={styles.list}>
+          {comments.map((c) => {
+            const isLiked = likedComments[`comment_${c.id}`];
+
+            return (
+              <div key={c.id} style={styles.comment}>
+                <div style={styles.topRow}>
+                  <span style={styles.name}>{c.name}</span>
+
+                  {c.name === name && (
+                    <button
+                      onClick={() => deleteComment(c)}
+                      style={styles.delete}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <span style={styles.text}>{c.text}</span>
+
+                <button
+                  onClick={() => toggleLikeComment(c)}
+                  style={styles.likeBtn}
+                >
+                  <span
+                    style={{
+                      color: isLiked ? "#c6a46c" : "#aaa",
+                      fontWeight: isLiked ? "600" : "400",
+                    }}
+                  >
+                    👍
+                  </span>
+                  {c.likes || 0}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -156,14 +221,14 @@ export default function CommentSheet({ photo, onClose }) {
 
 const styles = {
   overlay: {
-  position: "fixed",
-  inset: 0,
-  zIndex: 2000,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "flex-end",
-},
-  
+    position: "fixed",
+    inset: 0,
+    zIndex: 2000,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-end",
+  },
+
   backdrop: {
     position: "absolute",
     inset: 0,
@@ -171,65 +236,35 @@ const styles = {
   },
 
   sheet: {
-  width: "80%", // 👈 smaller
-  maxWidth: "600px", // 👈 prevents overflow on large screens
-  maxHeight: "75%",
+    width: "92%",
+    maxWidth: "500px",
+    height: "85%",
+    background: "#fff",
+    borderRadius: "24px",
+    marginBottom: "12px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  },
 
-  background: "#fff",
-  borderRadius: "24px",
-
-  marginBottom: "12px",
-
-  display: "flex",
-  flexDirection: "column",
-
-  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-},
-  
   handle: {
     width: "42px",
     height: "5px",
     background: "#ddd",
     borderRadius: "999px",
     alignSelf: "center",
-    marginTop: "10px",
-    marginBottom: "8px",
+    margin: "10px 0",
   },
 
   header: {
-    padding: "8px 16px",
     textAlign: "center",
     fontWeight: "600",
-  },
-
-  title: {
-    fontSize: "14px",
-  },
-
-  list: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "0 16px",
-  },
-
-  comment: {
-    marginBottom: "12px",
-  },
-
-  name: {
-    fontSize: "12px",
-    fontWeight: "600",
-    color: "#333",
-  },
-
-  text: {
-    fontSize: "14px",
-    color: "#444",
+    marginBottom: "6px",
   },
 
   inputArea: {
     padding: "12px",
-    borderTop: "1px solid #eee",
+    borderBottom: "1px solid #eee",
   },
 
   row: {
@@ -243,7 +278,6 @@ const styles = {
     padding: "10px",
     borderRadius: "12px",
     border: "1px solid #ddd",
-    fontSize: "14px",
   },
 
   send: {
@@ -252,6 +286,44 @@ const styles = {
     border: "none",
     background: "#c6a46c",
     color: "#fff",
+  },
+
+  list: {
+    flex: 1,
+    overflowY: "auto",
+    padding: "12px 16px",
+  },
+
+  comment: {
+    marginBottom: "14px",
+  },
+
+  topRow: {
+    display: "flex",
+    justifyContent: "space-between",
+  },
+
+  name: {
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+
+  text: {
+    fontSize: "14px",
+  },
+
+  delete: {
+    background: "none",
+    border: "none",
+    color: "#999",
     cursor: "pointer",
+  },
+
+  likeBtn: {
+    marginTop: "6px",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "13px",
   },
 };
