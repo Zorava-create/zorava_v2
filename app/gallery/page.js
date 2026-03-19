@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 const theme = themes.rustic;
 
 export default function GalleryPage() {
+  const router = useRouter();
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [commentIndex, setCommentIndex] = useState(null);
@@ -111,10 +112,13 @@ export default function GalleryPage() {
     )}
 
     {/* FLOATING UPLOAD BUTTON */}
-    <button style={styles.uploadBtn}>
-      +
-    </button>
-  
+    <button
+  style={styles.uploadBtn}
+  onClick={() => router.push("/upload")}
+>
+  +
+</button>
+    
     </main>
   );
 }
