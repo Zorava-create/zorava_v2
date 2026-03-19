@@ -100,25 +100,24 @@ export default function GalleryPage() {
     />
 
     {/* BACK TO TOP BUTTON */}
-    {visibleCount > 20 && (
       <button
-        onClick={() =>
-          window.scrollTo({ top: 0, behavior: "smooth" })
-        }
-        style={styles.backToTop}
-      >
-        ↑
-      </button>
-    )}
+  onClick={() =>
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+  style={styles.backToTop}
+>
+  ↑ Top
+</button>
+    
+)}
 
     {/* FLOATING UPLOAD BUTTON */}
-    <button
+  <button
   style={styles.uploadBtn}
   onClick={() => router.push("/upload")}
 >
-  +
-</button>
-    
+  📷 Upload Images
+</button>    
     </main>
   );
 }
@@ -180,4 +179,52 @@ header: {
     border: "none",
     fontSize: "13px",
   },
+  
+  uploadBtn: {
+  position: "fixed",
+  bottom: "20px",
+  right: "16px",
+
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+
+  padding: "12px 16px",
+  borderRadius: "999px",
+
+  background: "#c6a46c", // theme gold
+  color: "#fff",
+
+  fontSize: "14px",
+  fontWeight: "500",
+
+  border: "none",
+  cursor: "pointer",
+
+  boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
+},
+
+  backToTop: {
+  position: "fixed",
+  bottom: "20px",
+  left: "16px", // 👈 opposite side of upload
+
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+
+  padding: "12px 14px",
+  borderRadius: "999px",
+
+  background: "#c6a46c",
+  color: "#fff",
+
+  fontSize: "13px",
+  fontWeight: "500",
+
+  border: "none",
+  cursor: "pointer",
+
+  boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
+},
 };
