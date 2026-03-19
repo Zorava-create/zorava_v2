@@ -43,7 +43,7 @@ export default function UploadPage() {
         .getPublicUrl(filePath);
 
       await supabase.from("photos").insert({
-        event_id: "event-1",
+        event_id: "null",
         url: data.publicUrl,
         likes: 0,
       });
