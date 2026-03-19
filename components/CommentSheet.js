@@ -13,7 +13,7 @@ export default function CommentSheet({ photo, onClose }) {
   const startY = useRef(0);
   const dragging = useRef(false);
 
-  // ✅ Load local data
+  // Load localStorage
   useEffect(() => {
     const storedName = localStorage.getItem("zorava_name");
     if (storedName) setName(storedName);
@@ -24,73 +24,57 @@ export default function CommentSheet({ photo, onClose }) {
     setLikedComments(storedLikes);
   }, []);
 
-  // ✅ Fetch comments
+  // Fetch comments
   const fetchComments = async () => {
-    const { data } = await supabase
+    if (!photo) return;
+
+    const { data, error } = await supabase
       .from("comments")
       .select("*")
       .eq("photo_id", photo.id)
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Fetch error:", error);
+      return;
+    }
+
     setComments(data || []);
   };
 
-  // ✅ Realtime updates
   useEffect(() => {
-    if (!photo) return;
-
     fetchComments();
-
-    const channel = supabase
-      .channel("comments")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "comments" },
-        () => fetchComments()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [photo]);
 
-  // ✅ Add comment (with instant UI)
+  // SEND COMMENT (DEBUG ENABLED)
   const handleSend = async () => {
-  if (!text.trim()) return;
+    if (!text.trim()) return;
 
-  const finalName = name || "Guest";
+    const finalName = name || "Guest";
 
-  const response = await supabase.from("comments").insert([
-    {
-      photo_id: photo.id,
-      text: text,
-      name: finalName,
-      likes: 0,
-    },
-  ]);
+    const response = await supabase.from("comments").insert([
+      {
+        photo_id: photo.id,
+        text: text,
+        name: finalName,
+        likes: 0,
+      },
+    ]);
 
-  console.log("SUPABASE RESPONSE:", response);
+    console.log("SUPABASE RESPONSE:", response);
 
-  if (response.error) {
-    alert(JSON.stringify(response.error, null, 2));
-    return;
-  }
+    if (response.error) {
+      alert(JSON.stringify(response.error, null, 2));
+      return;
+    }
 
-  localStorage.setItem("zorava_name", finalName);
+    localStorage.setItem("zorava_name", finalName);
 
-  setText("");
-  fetchComments();
-}; 
+    setText("");
+    fetchComments();
+  };
 
-  localStorage.setItem("zorava_name", finalName);
-
-  setText("");
-
-  fetchComments(); // 🔥 force refresh
-}; 
-
-  // 👍 LIKE TOGGLE (SVG style feel)
+  // LIKE COMMENT
   const toggleLikeComment = async (comment) => {
     const key = `comment_${comment.id}`;
     const isLiked = likedComments[key];
@@ -108,16 +92,19 @@ export default function CommentSheet({ photo, onClose }) {
       .from("comments")
       .update({ likes: newLikes })
       .eq("id", comment.id);
+
+    fetchComments();
   };
 
-  // ❌ DELETE
+  // DELETE COMMENT
   const deleteComment = async (comment) => {
     if (comment.name !== name) return;
 
     await supabase.from("comments").delete().eq("id", comment.id);
+    fetchComments();
   };
 
-  // 👇 SWIPE DOWN CLOSE
+  // SWIPE DOWN
   const handleTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
     dragging.current = true;
@@ -133,20 +120,27 @@ export default function CommentSheet({ photo, onClose }) {
   const handleTouchEnd = () => {
     dragging.current = false;
 
-    if (translateY > 120) onClose();
-    else setTranslateY(0);
+    if (translateY > 120) {
+      onClose();
+    } else {
+      setTranslateY(0);
+    }
   };
 
   if (!photo) return null;
 
   return (
     <div style={styles.overlay}>
+      
+      {/* BACKDROP */}
       <div style={styles.backdrop} onClick={onClose} />
 
+      {/* SHEET */}
       <div
         style={{
           ...styles.sheet,
           transform: `translateY(${translateY}px)`,
+          transition: "transform 0.25s ease",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -158,7 +152,7 @@ export default function CommentSheet({ photo, onClose }) {
           Comments ({comments.length})
         </div>
 
-        {/* ✅ INPUT FIRST */}
+        {/* INPUT */}
         <div style={styles.inputArea}>
           <input
             placeholder="Your name"
@@ -181,7 +175,7 @@ export default function CommentSheet({ photo, onClose }) {
           </div>
         </div>
 
-        {/* ✅ COMMENTS BELOW */}
+        {/* COMMENTS */}
         <div style={styles.list}>
           {comments.map((c) => {
             const isLiked = likedComments[`comment_${c.id}`];
@@ -210,7 +204,6 @@ export default function CommentSheet({ photo, onClose }) {
                   <span
                     style={{
                       color: isLiked ? "#c6a46c" : "#aaa",
-                      fontWeight: isLiked ? "600" : "400",
                     }}
                   >
                     👍
