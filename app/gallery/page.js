@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import PhotoGrid from "../../components/PhotoGrid";
 import PhotoModal from "../../components/PhotoModal";
-import Slideshow from "../../components/Slideshow";
 import { themes } from "../themes";
 
 const theme = themes.classic;
@@ -12,41 +10,81 @@ const theme = themes.classic;
 export default function GalleryPage() {
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [activeTab, setActiveTab] = useState("all");
 
-  // 👉 Fetch photos
   useEffect(() => {
     fetchPhotos();
   }, []);
 
   const fetchPhotos = async () => {
-    const { data, error } = await supabase
-      .from("photos")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
-    } else {
-      setPhotos(data);
-    }
+    const { data } = await supabase.from("photos").select("*");
+    setPhotos(data || []);
   };
+
+  // 👉 Sort for Most Loved
+  const displayedPhotos =
+    activeTab === "loved"
+      ? [...photos].sort((a, b) => b.likes - a.likes)
+      : photos;
 
   return (
     <main style={styles.container}>
-      <h1 style={styles.title}>Emma & Jake’s Gallery</h1>
+      
+      {/* CARD */}
+      <div style={styles.card}>
 
-      <PhotoGrid
-        photos={photos}
-        onPhotoClick={(index) => setSelectedIndex(index)}
-        theme={theme}
+        {/* TITLE */}
+        <h2 style={styles.title}>Wedding Album</h2>
+
+        {/* TABS */}
+        <div style={styles.tabs}>
+          <button
+            style={activeTab === "all" ? styles.activeTab : styles.tab}
+            onClick={() => setActiveTab("all")}
+          >
+            All Photos
+          </button>
+
+          <button
+            style={activeTab === "loved" ? styles.activeTab : styles.tab}
+            onClick={() => setActiveTab("loved")}
+          >
+            Most Loved ❤️
+          </button>
+
+          <button style={styles.tab}>
+            Highlights
+          </button>
+        </div>
+
+        {/* GRID */}
+        <div style={styles.grid}>
+          {displayedPhotos.map((photo, index) => (
+            <img
+              key={photo.id}
+              src={`${photo.url}?width=600`}
+              style={styles.image}
+              onClick={() => setSelectedIndex(index)}
+            />
+          ))}
+        </div>
+
+        {/* BOTTOM BAR */}
+        <div style={styles.bottomBar}>
+          <span>❤️ Most Loved</span>
+          <span>🎞 Slideshow</span>
+          <span>🔴 Live Feed</span>
+        </div>
+
+      </div>
+
+      {/* MODAL */}
+      <PhotoModal
+        photos={displayedPhotos}
+        index={selectedIndex}
+        onClose={setSelectedIndex}
       />
 
-      <PhotoModal
-  photos={photos}
-  index={selectedIndex}
-  onClose={setSelectedIndex}
-/>
-      <Slideshow photos={photos} />
     </main>
   );
 }
@@ -55,10 +93,65 @@ const styles = {
   container: {
     minHeight: "100vh",
     background: theme.background,
+    display: "flex",
+    justifyContent: "center",
     padding: "20px",
   },
+
+  card: {
+    background: theme.card,
+    borderRadius: "20px",
+    padding: "20px",
+    maxWidth: "600px",
+    width: "100%",
+  },
+
   title: {
+    textAlign: "center",
     color: theme.text,
-    marginBottom: "20px",
+    marginBottom: "10px",
+  },
+
+  tabs: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginBottom: "15px",
+  },
+
+  tab: {
+    padding: "6px 12px",
+    borderRadius: "20px",
+    background: "#eee",
+    border: "none",
+    cursor: "pointer",
+  },
+
+  activeTab: {
+    padding: "6px 12px",
+    borderRadius: "20px",
+    background: theme.primary,
+    color: "#fff",
+    border: "none",
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "8px",
+  },
+
+  image: {
+    width: "100%",
+    borderRadius: "10px",
+    cursor: "pointer",
+  },
+
+  bottomBar: {
+    display: "flex",
+    justifyContent: "space-around",
+    marginTop: "15px",
+    fontSize: "14px",
+    color: theme.text,
   },
 };
