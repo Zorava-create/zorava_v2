@@ -35,4 +35,20 @@ const styles = {
     borderRadius: "12px",
     cursor: "pointer",
   },
+  imageWrapper: {
+  position: "relative",
+},
+
+overlay: {
+  position: "absolute",
+  bottom: "8px",
+  left: "8px",
+  display: "flex",
+  gap: "10px",
+  color: "#fff",
+  fontSize: "14px",
+  background: "rgba(0,0,0,0.4)",
+  padding: "4px 8px",
+  borderRadius: "10px",
+},
 };
