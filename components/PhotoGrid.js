@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export default function PhotoGrid({ photos, onPhotoClick, theme }) {
   const [likedMap, setLikedMap] = useState({});
 
-  // Load liked state from localStorage
+  // Load liked state
   useEffect(() => {
     const map = {};
     photos.forEach((photo) => {
@@ -21,10 +21,8 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
     const likedKey = `liked_${photo.id}`;
     const alreadyLiked = likedMap[photo.id];
 
-    // Toggle OFF
     if (alreadyLiked) {
       localStorage.removeItem(likedKey);
-
       photo.likes = Math.max((photo.likes || 0) - 1, 0);
 
       setLikedMap((prev) => ({
@@ -35,9 +33,7 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
       return;
     }
 
-    // Toggle ON
     localStorage.setItem(likedKey, "true");
-
     photo.likes = (photo.likes || 0) + 1;
 
     setLikedMap((prev) => ({
@@ -47,13 +43,29 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
   };
 
   return (
-    <div style={styles.wrapper}>
+    <div style={{ ...styles.wrapper, background: theme?.background || "#f8f6f2" }}>
+      
+      {/* HEADER */}
+      <div style={styles.header}>
+        <h1 style={styles.title}>Emma & Jake’s Wedding</h1>
+        <p style={styles.subtitle}>Wedding Album</p>
+
+        {/* TABS */}
+        <div style={styles.tabs}>
+          <span style={styles.activeTab}>All Photos</span>
+          <span style={styles.tab}>Most Loved ❤️</span>
+          <span style={styles.tab}>Highlights</span>
+        </div>
+      </div>
+
+      {/* GRID */}
       <div style={styles.grid}>
         {photos.map((photo, index) => {
           const isLiked = likedMap[photo.id];
 
           return (
             <div key={photo.id} style={styles.card}>
+              
               {/* IMAGE */}
               <div
                 style={styles.imageWrapper}
@@ -65,8 +77,10 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
                 />
               </div>
 
-              {/* ACTIONS BELOW */}
+              {/* ACTIONS */}
               <div style={styles.meta}>
+                
+                {/* LIKE */}
                 <button
                   onClick={() => handleLike(photo)}
                   style={styles.actionBtn}
@@ -74,7 +88,7 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
                   <span
                     style={{
                       ...styles.heart,
-                      color: isLiked ? "#ff4d6d" : "#777",
+                      color: isLiked ? "#d94c5c" : "#888",
                     }}
                   >
                     ❤️
@@ -84,12 +98,17 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
                   </span>
                 </button>
 
+                {/* COMMENTS */}
                 <button
                   onClick={() => onPhotoClick(index)}
                   style={styles.actionBtn}
                 >
                   <span style={styles.comment}>💬</span>
+                  <span style={styles.count}>
+                    {photo.comment_count || 0}
+                  </span>
                 </button>
+
               </div>
             </div>
           );
@@ -101,30 +120,68 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
 
 const styles = {
   wrapper: {
-    padding: "12px",
+    minHeight: "100vh",
     paddingBottom: "80px",
+  },
+
+  header: {
+    padding: "20px 16px 10px",
+  },
+
+  title: {
+    fontFamily: "Playfair Display, serif",
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#2c2c2c",
+  },
+
+  subtitle: {
+    fontSize: "14px",
+    color: "#8a7f73",
+    marginTop: "2px",
+    fontStyle: "italic",
+  },
+
+  tabs: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "12px",
+  },
+
+  tab: {
+    fontSize: "13px",
+    color: "#8a7f73",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    background: "#eee",
+  },
+
+  activeTab: {
+    fontSize: "13px",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "999px",
+    background: "#c6a46c",
   },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)", // 🔥 mobile-first (2 cols)
+    gridTemplateColumns: "repeat(2, 1fr)",
     gap: "12px",
+    padding: "0 12px",
   },
 
   card: {
     background: "#fff",
     borderRadius: "16px",
     overflow: "hidden",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-    display: "flex",
-    flexDirection: "column",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
   },
 
   imageWrapper: {
     width: "100%",
     aspectRatio: "1 / 1",
-    background: "#f3f3f3",
-    cursor: "pointer",
+    background: "#eee",
   },
 
   image: {
@@ -135,7 +192,6 @@ const styles = {
 
   meta: {
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
     padding: "10px 12px",
   },
@@ -147,7 +203,6 @@ const styles = {
     background: "none",
     border: "none",
     cursor: "pointer",
-    fontSize: "14px",
   },
 
   heart: {
@@ -156,11 +211,11 @@ const styles = {
 
   comment: {
     fontSize: "16px",
-    color: "#777",
+    color: "#888",
   },
 
   count: {
     fontSize: "13px",
-    color: "#444",
+    color: "#555",
   },
 };
