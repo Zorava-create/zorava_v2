@@ -105,8 +105,8 @@ const styles = {
 
   card: {
     padding: "16px",
-  },
 };
+
 header: {
     textAlign: "center",
     marginBottom: "12px",
