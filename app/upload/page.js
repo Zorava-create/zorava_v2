@@ -38,16 +38,16 @@ export default function UploadPage() {
         return;
       }
 
-      const { data } = supabase.storage
+      const publicUrl = supabase.storage
         .from("photos")
-        .getPublicUrl(filePath);
+        .getPublicUrl(filePath).data.publicUrl;
 
       const { data: insertData, error: dbError } = await supabase
   .from("photos")
   .insert([
     {
       event_id: null,
-      url: data.publicUrl,
+      url: publicUrl,
       likes: 0,
     },
   ])
