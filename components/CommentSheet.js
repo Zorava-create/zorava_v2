@@ -171,9 +171,9 @@ const styles = {
   },
 
   sheet: {
-  width: "46%", // 👈 smaller
-  maxWidth: "500px", // 👈 prevents overflow on large screens
-  maxHeight: "70%",
+  width: "80%", // 👈 smaller
+  maxWidth: "600px", // 👈 prevents overflow on large screens
+  maxHeight: "75%",
 
   background: "#fff",
   borderRadius: "24px",
