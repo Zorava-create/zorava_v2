@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import PhotoModal from "../../components/PhotoModal";
 import { themes } from "../themes";
+import PhotoGrid from "../../components/PhotoGrid";
 
 const theme = themes.rustic;
 
@@ -58,17 +59,12 @@ export default function GalleryPage() {
         </div>
 
         {/* GRID */}
-        <div style={styles.grid}>
-          {displayedPhotos.map((photo, index) => (
-            <img
-              key={photo.id}
-              src={`${photo.url}?width=600`}
-              style={styles.image}
-              onClick={() => setSelectedIndex(index)}
-            />
-          ))}
-        </div>
-
+        <PhotoGrid
+          photos={displayedPhotos}
+          onPhotoClick={(index) => setSelectedIndex(index)}
+          theme={theme}
+          />
+            
         {/* BOTTOM BAR */}
         <div style={styles.bottomBar}>
           <span>❤️ Most Loved</span>
