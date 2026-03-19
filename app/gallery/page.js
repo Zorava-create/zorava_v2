@@ -104,12 +104,10 @@ const styles = {
   },
 
   card: {
-    background: theme.card,
-    borderRadius: "0px", // full width feel
     padding: "16px",
   },
-
-  header: {
+};
+header: {
     textAlign: "center",
     marginBottom: "12px",
   },
