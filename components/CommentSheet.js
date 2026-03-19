@@ -72,7 +72,7 @@ export default function CommentSheet({ photo, onClose }) {
 
     setText("");
     fetchComments();
-  };
+    window.dispatchEvent(new Event("comment_added"));  };
 
   // LIKE COMMENT
   const toggleLikeComment = async (comment) => {
