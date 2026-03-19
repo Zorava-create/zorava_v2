@@ -1,30 +1,36 @@
 "use client";
 
 export default function PhotoGrid({ photos, onPhotoClick, theme }) {
-  if (!photos || photos.length === 0) {
-    return (
-      <p style={{ color: theme.subtext }}>
-        No photos yet — be the first to upload 📸
-      </p>
-    );
-  }
+  const handleLike = (photo) => {
+    const likedKey = `liked_${photo.id}`;
+
+    if (localStorage.getItem(likedKey)) return;
+
+    localStorage.setItem(likedKey, "true");
+
+    // optimistic UI (instant feedback)
+    photo.likes = (photo.likes || 0) + 1;
+  };
 
   return (
     <div style={styles.grid}>
       {photos.map((photo, index) => (
         <div key={photo.id} style={styles.card}>
           
-          {/* IMAGE */}
           <img
             src={`${photo.url}?width=600`}
             style={styles.image}
             onClick={() => onPhotoClick(index)}
           />
 
-          {/* META BELOW IMAGE */}
           <div style={styles.meta}>
-            <span>❤️ {photo.likes || 0}</span>
-            <span>💬</span>
+            <span onClick={() => handleLike(photo)} style={styles.icon}>
+              ❤️ {photo.likes || 0}
+            </span>
+
+            <span onClick={() => onPhotoClick(index)} style={styles.icon}>
+              💬
+            </span>
           </div>
 
         </div>
@@ -53,11 +59,14 @@ const styles = {
 
   meta: {
     display: "flex",
-    justifyContent: "flex-start",
     gap: "12px",
     fontSize: "13px",
     marginTop: "6px",
     color: "#555",
     paddingLeft: "4px",
+  },
+
+  icon: {
+    cursor: "pointer",
   },
 };
