@@ -1,63 +1,134 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import PhotoModal from "../../components/PhotoModal";
-import { themes } from "../themes";
-import PhotoGrid from "../../components/PhotoGrid";
-import CommentSheet from "../../components/CommentSheet";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import PhotoGrid from "../../components/PhotoGrid";
+import PhotoModal from "../../components/PhotoModal";
+import CommentSheet from "../../components/CommentSheet";
+import { supabase } from "../../lib/supabaseClient";
+import { themes } from "../themes";
 
 const theme = themes.rustic;
+const EVENT_ID = "emma-jake-wedding";
+const PAGE_SIZE = 20;
 
-export default function GalleryPage() {
-  const router = useRouter();
-  const [photos, setPhotos] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  const [commentIndex, setCommentIndex] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(20);
-  
-  useEffect(() => {
-    fetchPhotos();
-  }, []);
-const fetchPhotos = async () => {
-  const { data: photosData } = await supabase
-    .from("photos")
-    .select("*");
-
-  if (!photosData) return;
-
-  // 🔥 get comment counts
-  const { data: commentsData } = await supabase
-    .from("comments")
-    .select("photo_id");
-
+// 🔥 Merge comment counts into photos
+function mergeCommentCounts(photosData = [], commentsData = []) {
   const countMap = {};
 
-  commentsData?.forEach((c) => {
+  commentsData.forEach((c) => {
     countMap[c.photo_id] = (countMap[c.photo_id] || 0) + 1;
   });
 
-  const photosWithCounts = photosData.map((p) => ({
-    ...p,
-    comment_count: countMap[p.id] || 0,
+  return photosData.map((photo) => ({
+    ...photo,
+    comment_count: countMap[photo.id] || 0,
   }));
-    setPhotos(photosWithCounts);
-};  
-  return (
-  <main style={styles.container}>
-    
-    {/* MAIN CONTENT */}
-    <div style={styles.card}>
+}
 
+export default function GalleryPage() {
+  const router = useRouter();
+
+  const [photos, setPhotos] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [commentPhotoIndex, setCommentPhotoIndex] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // 🔥 Fetch photos + comment counts
+  const refreshGallery = useCallback(async () => {
+    const [{ data: photosData }, { data: commentsData }] =
+      await Promise.all([
+        supabase
+          .from("photos")
+          .select("*")
+          .eq("event_id", EVENT_ID)
+          .order("created_at", { ascending: false }),
+        supabase.from("comments").select("photo_id"),
+      ]);
+
+    const merged = mergeCommentCounts(
+      photosData || [],
+      commentsData || []
+    );
+
+    setPhotos(merged);
+  }, []);
+
+  useEffect(() => {
+    refreshGallery();
+  }, [refreshGallery]);
+
+  // 🔥 Sorting
+  const displayedPhotos = useMemo(() => {
+    if (activeTab === "loved") {
+      return [...photos].sort(
+        (a, b) => (b.likes || 0) - (a.likes || 0)
+      );
+    }
+    return photos;
+  }, [photos, activeTab]);
+
+  // 🔥 Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 300
+      ) {
+        setVisibleCount((prev) =>
+          Math.min(prev + PAGE_SIZE, displayedPhotos.length)
+        );
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [displayedPhotos.length]);
+
+  const visiblePhotos = displayedPhotos.slice(0, visibleCount);
+
+  const selectedPhoto =
+    selectedPhotoIndex !== null
+      ? visiblePhotos[selectedPhotoIndex]
+      : null;
+
+  const commentPhoto =
+    commentPhotoIndex !== null
+      ? visiblePhotos[commentPhotoIndex]
+      : null;
+
+  // 🔥 Like handler (SAFE, no mutation)
+  const handlePhotoLikeToggle = async (photoId, shouldLike) => {
+    const target = photos.find((p) => p.id === photoId);
+    if (!target) return;
+
+    const newLikes = shouldLike
+      ? (target.likes || 0) + 1
+      : Math.max((target.likes || 0) - 1, 0);
+
+    // instant UI update
+    setPhotos((prev) =>
+      prev.map((p) =>
+        p.id === photoId ? { ...p, likes: newLikes } : p
+      )
+    );
+
+    await supabase
+      .from("photos")
+      .update({ likes: newLikes })
+      .eq("id", photoId);
+  };
+
+  return (
+    <main style={styles.page(theme)}>
+      
       {/* HEADER */}
       <div style={styles.header}>
-        <h1 style={styles.hosts}>
+        <h1 style={styles.title(theme)}>
           Emma & Jake’s Wedding Album
         </h1>
-
-        <p style={styles.subtitle}>
+        <p style={styles.subtitle(theme)}>
           Captured moments from your special day
         </p>
       </div>
@@ -78,97 +149,82 @@ const fetchPhotos = async () => {
           Most Loved ❤️
         </button>
 
-        <button style={styles.tab}>
-          Highlights
-        </button>
+        <button style={styles.tab}>Highlights</button>
       </div>
 
       {/* GRID */}
       <PhotoGrid
         photos={visiblePhotos}
-        onPhotoClick={(index) => setSelectedIndex(index)}
-        onCommentClick={(index) => setCommentIndex(index)}
+        onPhotoClick={setSelectedPhotoIndex}
+        onCommentClick={setCommentPhotoIndex}
+        onToggleLike={handlePhotoLikeToggle}
         theme={theme}
       />
 
-    </div>
+      {/* MODAL */}
+      <PhotoModal
+        photo={selectedPhoto}
+        onClose={() => setSelectedPhotoIndex(null)}
+      />
 
-    {/* IMAGE MODAL */}
-    <PhotoModal
-      photos={displayedPhotos}
-      index={selectedIndex}
-      onClose={setSelectedIndex}
-    />
+      {/* COMMENTS */}
+      <CommentSheet
+        photo={commentPhoto}
+        onClose={() => setCommentPhotoIndex(null)}
+        onCommentsChanged={refreshGallery}
+      />
 
-    {/* COMMENT SHEET */}
-    <CommentSheet
-      photo={
-        commentIndex !== null
-          ? displayedPhotos[commentIndex]
-          : null
-      }
-      onClose={() => setCommentIndex(null)}
-    />
+      {/* BACK TO TOP */}
+      <button
+        style={styles.topButton}
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        }
+      >
+        ↑ Top
+      </button>
 
-    {/* BACK TO TOP BUTTON */}
-    <button
-      onClick={() =>
-        window.scrollTo({ top: 0, behavior: "smooth" })
-      }
-      style={styles.backToTop}
-    >
-      ↑ Top
-    </button>
+      {/* UPLOAD BUTTON */}
+      <button
+        style={styles.uploadBtn}
+        onClick={() => router.push("/upload")}
+      >
+        📷 Upload Images
+      </button>
 
-    {/* FLOATING UPLOAD BUTTON */}
-    <button
-      style={styles.uploadBtn}
-      onClick={() => router.push("/upload")}
-    >
-      📷 Upload Images
-    </button>
-
-  </main>
-);
+    </main>
+  );
 }
 
 const styles = {
-  container: {
+  page: (theme) => ({
     minHeight: "100vh",
     background: theme.background,
-  },
-
-  card: {
     padding: "16px",
-  },
+  }),
 
   header: {
     textAlign: "center",
-    marginBottom: "12px",
+    marginBottom: "16px",
   },
 
-  hosts: {
+  title: (theme) => ({
     fontFamily: "Playfair Display, serif",
     fontSize: "26px",
-    fontWeight: "600",
     color: theme.text,
-    letterSpacing: "0.5px",
-  },
+  }),
 
-  subtitle: {
-    fontSize: "15px",
+  subtitle: (theme) => ({
+    fontSize: "14px",
     color: theme.text,
-    marginTop: "6px",
-    fontStyle: "italic",
-    opacity: 0.8,
-  },
+    opacity: 0.7,
+  }),
 
   tabs: {
     display: "flex",
     justifyContent: "center",
     gap: "8px",
     marginBottom: "16px",
-    marginTop: "10px",
   },
 
   tab: {
@@ -177,8 +233,6 @@ const styles = {
     background: "#eee",
     border: "none",
     cursor: "pointer",
-    fontSize: "13px",
-    color: "#555",
   },
 
   activeTab: {
@@ -187,54 +241,29 @@ const styles = {
     background: "#c6a46c",
     color: "#fff",
     border: "none",
-    fontSize: "13px",
   },
 
   uploadBtn: {
     position: "fixed",
     bottom: "20px",
     right: "16px",
-
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-
     padding: "12px 16px",
     borderRadius: "999px",
-
     background: "#c6a46c",
     color: "#fff",
-
-    fontSize: "14px",
-    fontWeight: "500",
-
     border: "none",
     cursor: "pointer",
-
-    boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
   },
 
-  backToTop: {
+  topButton: {
     position: "fixed",
     bottom: "20px",
     left: "16px",
-
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-
     padding: "12px 14px",
     borderRadius: "999px",
-
     background: "#c6a46c",
     color: "#fff",
-
-    fontSize: "13px",
-    fontWeight: "500",
-
     border: "none",
     cursor: "pointer",
-
-    boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
   },
 };
