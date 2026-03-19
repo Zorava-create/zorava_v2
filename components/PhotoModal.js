@@ -1,41 +1,94 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 export default function PhotoModal({ photos, index, onClose }) {
   if (index === null || !photos[index]) return null;
 
   const photo = photos[index];
 
-  const next = () => {
-    if (index < photos.length - 1) {
-      onClose(index + 1);
-    }
+  // ❤️ Likes
+  const [likes, setLikes] = useState(photo.likes || 0);
+
+  // 💬 Comments
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+
+  // 👉 Like
+  const handleLike = async () => {
+    const newLikes = likes + 1;
+    setLikes(newLikes);
+
+    await supabase
+      .from("photos")
+      .update({ likes: newLikes })
+      .eq("id", photo.id);
   };
 
-  const prev = () => {
-    if (index > 0) {
-      onClose(index - 1);
-    }
+  // 👉 Fetch comments
+  const fetchComments = async () => {
+    const { data } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("photo_id", photo.id)
+      .order("created_at", { ascending: false });
+
+    setComments(data || []);
   };
+
+  // 👉 Add comment
+  const addComment = async () => {
+    if (!newComment) return;
+
+    await supabase.from("comments").insert([
+      {
+        photo_id: photo.id,
+        text: newComment,
+      },
+    ]);
+
+    setNewComment("");
+    fetchComments();
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [photo.id]);
 
   return (
     <div style={styles.overlay}>
       
-      {/* EXIT */}
+      {/* CLOSE */}
       <button style={styles.close} onClick={() => onClose(null)}>
         ✕
       </button>
 
       {/* IMAGE */}
-      <img
-        src={`${photo.url}?width=1200`}
-        style={styles.image}
-      />
+      <img src={`${photo.url}?width=1200`} style={styles.image} />
 
-      {/* NAV */}
-      <button style={styles.left} onClick={prev}>‹</button>
-      <button style={styles.right} onClick={next}>›</button>
+      {/* LIKE */}
+      <div style={styles.actions}>
+        <span onClick={handleLike} style={styles.like}>
+          ❤️ {likes}
+        </span>
+      </div>
+
+      {/* COMMENTS */}
+      <div style={styles.comments}>
+        {comments.map((c) => (
+          <p key={c.id}>{c.text}</p>
+        ))}
+
+        <div style={styles.commentInput}>
+          <input
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
+          />
+          <button onClick={addComment}>Send</button>
+        </div>
+      </div>
 
     </div>
   );
@@ -54,11 +107,13 @@ const styles = {
     justifyContent: "center",
     zIndex: 1000,
   },
+
   image: {
     maxWidth: "95%",
-    maxHeight: "90%",
+    maxHeight: "80%",
     borderRadius: "12px",
   },
+
   close: {
     position: "absolute",
     top: "20px",
@@ -69,20 +124,31 @@ const styles = {
     color: "#fff",
     cursor: "pointer",
   },
-  left: {
+
+  actions: {
     position: "absolute",
-    left: "10px",
-    fontSize: "40px",
+    bottom: "80px",
+    left: "20px",
     color: "#fff",
-    background: "none",
-    border: "none",
   },
-  right: {
+
+  like: {
+    fontSize: "18px",
+    cursor: "pointer",
+  },
+
+  comments: {
     position: "absolute",
-    right: "10px",
-    fontSize: "40px",
+    bottom: "0",
+    width: "100%",
+    background: "#111",
+    padding: "10px",
     color: "#fff",
-    background: "none",
-    border: "none",
+  },
+
+  commentInput: {
+    display: "flex",
+    gap: "5px",
+    marginTop: "10px",
   },
 };
