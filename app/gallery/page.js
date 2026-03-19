@@ -14,7 +14,8 @@ export default function GalleryPage() {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [commentIndex, setCommentIndex] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
-
+  const [visibleCount, setVisibleCount] = useState(20);
+  
   useEffect(() => {
     fetchPhotos();
   }, []);
@@ -29,69 +30,89 @@ export default function GalleryPage() {
       ? [...photos].sort((a, b) => (b.likes || 0) - (a.likes || 0))
       : photos;
 
+  const visiblePhotos = displayedPhotos.slice(0, visibleCount);
+  
   return (
-    <main style={styles.container}>
-      
-      <div style={styles.card}>
+  <main style={styles.container}>
+    
+    {/* MAIN CONTENT */}
+    <div style={styles.card}>
 
-        {/* HEADER */}
-        <div style={styles.header}>
-          <h1 style={styles.hosts}>
-            Emma & Jake’s Wedding Album
-          </h1>
+      {/* HEADER */}
+      <div style={styles.header}>
+        <h1 style={styles.hosts}>
+          Emma & Jake’s Wedding Album
+        </h1>
 
-          <p style={styles.subtitle}>
-            Captured moments from your special day
-          </p>
-        </div>
-
-        {/* TABS */}
-        <div style={styles.tabs}>
-          <button
-            style={activeTab === "all" ? styles.activeTab : styles.tab}
-            onClick={() => setActiveTab("all")}
-          >
-            All Photos
-          </button>
-
-          <button
-            style={activeTab === "loved" ? styles.activeTab : styles.tab}
-            onClick={() => setActiveTab("loved")}
-          >
-            Most Loved ❤️
-          </button>
-
-          <button style={styles.tab}>
-            Highlights
-          </button>
-        </div>
-
-        {/* GRID */}
-        <PhotoGrid
-          photos={displayedPhotos}
-          onPhotoClick={(index) => setSelectedIndex(index)}
-          onCommentClick={(index) => setCommentIndex(index)}
-          theme={theme}
-        />
-
+        <p style={styles.subtitle}>
+          Captured moments from your special day
+        </p>
       </div>
 
-      {/* IMAGE MODAL */}
-      <PhotoModal
-        photos={displayedPhotos}
-        index={selectedIndex}
-        onClose={setSelectedIndex}
+      {/* TABS */}
+      <div style={styles.tabs}>
+        <button
+          style={activeTab === "all" ? styles.activeTab : styles.tab}
+          onClick={() => setActiveTab("all")}
+        >
+          All Photos
+        </button>
+
+        <button
+          style={activeTab === "loved" ? styles.activeTab : styles.tab}
+          onClick={() => setActiveTab("loved")}
+        >
+          Most Loved ❤️
+        </button>
+
+        <button style={styles.tab}>
+          Highlights
+        </button>
+      </div>
+
+      {/* GRID */}
+      <PhotoGrid
+        photos={visiblePhotos}
+        onPhotoClick={(index) => setSelectedIndex(index)}
+        onCommentClick={(index) => setCommentIndex(index)}
+        theme={theme}
       />
 
-      {/* COMMENT MODAL (temporary reuse) */}
-      <CommentSheet
-  photo={
-    commentIndex !== null
-      ? displayedPhotos[commentIndex]
-      : null
-  }
-  onClose={() => setCommentIndex(null)}
-/>
+    </div>
+
+    {/* IMAGE MODAL */}
+    <PhotoModal
+      photos={displayedPhotos}
+      index={selectedIndex}
+      onClose={setSelectedIndex}
+    />
+
+    {/* COMMENT SHEET */}
+    <CommentSheet
+      photo={
+        commentIndex !== null
+          ? displayedPhotos[commentIndex]
+          : null
+      }
+      onClose={() => setCommentIndex(null)}
+    />
+
+    {/* BACK TO TOP BUTTON */}
+    {visibleCount > 20 && (
+      <button
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        }
+        style={styles.backToTop}
+      >
+        ↑
+      </button>
+    )}
+
+    {/* FLOATING UPLOAD BUTTON */}
+    <button style={styles.uploadBtn}>
+      +
+    </button>
   
     </main>
   );
