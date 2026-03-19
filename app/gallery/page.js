@@ -42,11 +42,10 @@ export default function GalleryPage() {
       />
 
       <PhotoModal
-        photos={photos}
-        index={selectedIndex}
-        onClose={() => setSelectedIndex(null)}
-      />
-
+  photos={photos}
+  index={selectedIndex}
+  onClose={setSelectedIndex}
+/>
       <Slideshow photos={photos} />
     </main>
   );
