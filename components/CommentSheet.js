@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 export default function CommentSheet({ photo, onClose }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [name, setName] = useState("");
+  const [translateY, setTranslateY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+
+  const startY = useRef(0);
+  const inputRef = useRef(null);
 
   // Load name
   useEffect(() => {
@@ -26,7 +31,14 @@ export default function CommentSheet({ photo, onClose }) {
   };
 
   useEffect(() => {
-    if (photo) fetchComments();
+    if (photo) {
+      fetchComments();
+
+      // auto focus input
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
   }, [photo]);
 
   const handleSend = async () => {
@@ -48,6 +60,33 @@ export default function CommentSheet({ photo, onClose }) {
     fetchComments();
   };
 
+  // 👇 TOUCH HANDLERS (SWIPE DOWN)
+  const handleTouchStart = (e) => {
+    startY.current = e.touches[0].clientY;
+    setDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!dragging) return;
+
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startY.current;
+
+    if (diff > 0) {
+      setTranslateY(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDragging(false);
+
+    if (translateY > 120) {
+      onClose(); // swipe to close
+    } else {
+      setTranslateY(0); // snap back
+    }
+  };
+
   if (!photo) return null;
 
   return (
@@ -57,7 +96,16 @@ export default function CommentSheet({ photo, onClose }) {
       <div style={styles.backdrop} onClick={onClose} />
 
       {/* SHEET */}
-      <div style={styles.sheet}>
+      <div
+        style={{
+          ...styles.sheet,
+          transform: `translateY(${translateY}px)`,
+          transition: dragging ? "none" : "transform 0.25s ease",
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         
         {/* HANDLE */}
         <div style={styles.handle} />
@@ -67,7 +115,7 @@ export default function CommentSheet({ photo, onClose }) {
           <span style={styles.title}>Comments</span>
         </div>
 
-        {/* COMMENT LIST */}
+        {/* COMMENTS */}
         <div style={styles.list}>
           {comments.map((c) => (
             <div key={c.id} style={styles.comment}>
@@ -77,7 +125,7 @@ export default function CommentSheet({ photo, onClose }) {
           ))}
         </div>
 
-        {/* INPUT AREA */}
+        {/* INPUT */}
         <div style={styles.inputArea}>
           <input
             placeholder="Your name"
@@ -88,6 +136,7 @@ export default function CommentSheet({ photo, onClose }) {
 
           <div style={styles.row}>
             <input
+              ref={inputRef}
               placeholder="Write a comment..."
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -115,34 +164,39 @@ const styles = {
   backdrop: {
     position: "absolute",
     inset: 0,
-    background: "rgba(0,0,0,0.4)",
+    background: "rgba(0,0,0,0.35)",
   },
 
   sheet: {
     position: "absolute",
-    bottom: 0,
-    width: "100%",
+    bottom: "10px", // 👈 space from edges
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "94%", // 👈 not full width
     maxHeight: "75%",
+
     background: "#fff",
-    borderTopLeftRadius: "20px",
-    borderTopRightRadius: "20px",
+    borderRadius: "24px", // 👈 more premium curve
+
     display: "flex",
     flexDirection: "column",
-    animation: "slideUp 0.25s ease",
+
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
   },
 
   handle: {
-    width: "40px",
-    height: "4px",
+    width: "42px",
+    height: "5px",
     background: "#ddd",
     borderRadius: "999px",
     alignSelf: "center",
-    marginTop: "8px",
+    marginTop: "10px",
     marginBottom: "8px",
   },
 
   header: {
     padding: "8px 16px",
+    textAlign: "center",
     fontWeight: "600",
   },
 
@@ -157,9 +211,7 @@ const styles = {
   },
 
   comment: {
-    marginBottom: "10px",
-    display: "flex",
-    flexDirection: "column",
+    marginBottom: "12px",
   },
 
   name: {
@@ -174,7 +226,7 @@ const styles = {
   },
 
   inputArea: {
-    padding: "10px",
+    padding: "12px",
     borderTop: "1px solid #eee",
   },
 
@@ -186,15 +238,15 @@ const styles = {
 
   input: {
     flex: 1,
-    padding: "8px",
-    borderRadius: "10px",
+    padding: "10px",
+    borderRadius: "12px",
     border: "1px solid #ddd",
     fontSize: "14px",
   },
 
   send: {
-    padding: "8px 12px",
-    borderRadius: "10px",
+    padding: "10px 14px",
+    borderRadius: "12px",
     border: "none",
     background: "#c6a46c",
     color: "#fff",
