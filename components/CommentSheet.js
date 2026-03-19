@@ -61,19 +61,27 @@ export default function CommentSheet({ photo, onClose }) {
 
   const finalName = name || "Guest";
 
-  const { error } = await supabase.from("comments").insert([
+  const response = await supabase.from("comments").insert([
     {
       photo_id: photo.id,
-      text,
+      text: text,
       name: finalName,
       likes: 0,
     },
   ]);
-if (error) {
-  console.error("FULL ERROR:", error);
-  alert(error.message || "Failed to send comment");
-  return;
-}  
+
+  console.log("SUPABASE RESPONSE:", response);
+
+  if (response.error) {
+    alert(JSON.stringify(response.error, null, 2));
+    return;
+  }
+
+  localStorage.setItem("zorava_name", finalName);
+
+  setText("");
+  fetchComments();
+}; 
 
   localStorage.setItem("zorava_name", finalName);
 
