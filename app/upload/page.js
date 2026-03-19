@@ -59,7 +59,7 @@ console.log("DB ERROR:", dbError);
 if (dbError) {
   alert("DB ERROR: " + dbError.message);
 }
-
+}
 
     setUploading(false);
     setDone(true);
