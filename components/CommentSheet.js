@@ -57,31 +57,31 @@ export default function CommentSheet({ photo, onClose }) {
 
   // ✅ Add comment (with instant UI)
   const handleSend = async () => {
-    if (!text.trim()) return;
+  if (!text.trim()) return;
 
-    const finalName = name || "Guest";
+  const finalName = name || "Guest";
 
-    const newComment = {
-      id: Date.now(),
-      name: finalName,
+  const { error } = await supabase.from("comments").insert([
+    {
+      photo_id: photo.id,
       text,
+      name: finalName,
       likes: 0,
-    };
+    },
+  ]);
 
-    setComments((prev) => [newComment, ...prev]); // instant UI
+  if (error) {
+    console.error("Comment error:", error);
+    alert("Failed to send comment");
+    return;
+  }
 
-    await supabase.from("comments").insert([
-      {
-        photo_id: photo.id,
-        text,
-        name: finalName,
-        likes: 0,
-      },
-    ]);
+  localStorage.setItem("zorava_name", finalName);
 
-    localStorage.setItem("zorava_name", finalName);
-    setText("");
-  };
+  setText("");
+
+  fetchComments(); // 🔥 force refresh
+}; 
 
   // 👍 LIKE TOGGLE (SVG style feel)
   const toggleLikeComment = async (comment) => {
