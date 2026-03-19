@@ -11,6 +11,7 @@ import { themes } from "../themes";
 const theme = themes.rustic;
 const EVENT_ID = "emma-jake-wedding";
 const PAGE_SIZE = 20;
+const [hostNames, setHostNames] = useState("");
 
 // 🔥 Merge comment counts into photos
 function mergeCommentCounts(photosData = [], commentsData = []) {
