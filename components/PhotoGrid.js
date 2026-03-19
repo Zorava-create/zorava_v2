@@ -27,14 +27,13 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
 
 const styles = {
   grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "10px",
+    columnCount: 2,
+    columnGap: "10px",
   },
   image: {
     width: "100%",
+    marginBottom: "10px",
     borderRadius: "12px",
     cursor: "pointer",
-    objectFit: "cover",
   },
 };
