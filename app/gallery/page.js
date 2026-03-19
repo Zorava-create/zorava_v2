@@ -11,6 +11,7 @@ const theme = themes.rustic;
 export default function GalleryPage() {
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [commentIndex, setCommentIndex] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
@@ -22,7 +23,6 @@ export default function GalleryPage() {
     setPhotos(data || []);
   };
 
-  // 👉 Sort for Most Loved
   const displayedPhotos =
     activeTab === "loved"
       ? [...photos].sort((a, b) => (b.likes || 0) - (a.likes || 0))
@@ -31,17 +31,16 @@ export default function GalleryPage() {
   return (
     <main style={styles.container}>
       
-      {/* CARD CONTAINER */}
       <div style={styles.card}>
 
-        {/* ✅ PREMIUM HEADER */}
+        {/* HEADER */}
         <div style={styles.header}>
           <h1 style={styles.hosts}>
-            Emma & Jake
+            Emma & Jake’s Wedding Album
           </h1>
 
           <p style={styles.subtitle}>
-            Wedding Album
+            Captured moments from your special day
           </p>
         </div>
 
@@ -70,16 +69,25 @@ export default function GalleryPage() {
         <PhotoGrid
           photos={displayedPhotos}
           onPhotoClick={(index) => setSelectedIndex(index)}
+          onCommentClick={(index) => setCommentIndex(index)}
           theme={theme}
         />
 
       </div>
 
-      {/* MODAL */}
+      {/* IMAGE MODAL */}
       <PhotoModal
         photos={displayedPhotos}
         index={selectedIndex}
         onClose={setSelectedIndex}
+      />
+
+      {/* COMMENT MODAL (temporary reuse) */}
+      <PhotoModal
+        photos={displayedPhotos}
+        index={commentIndex}
+        onClose={setCommentIndex}
+        commentsOnly
       />
 
     </main>
@@ -90,50 +98,40 @@ const styles = {
   container: {
     minHeight: "100vh",
     background: theme.background,
-    display: "flex",
-    justifyContent: "center",
-    padding: "20px",
   },
 
   card: {
     background: theme.card,
-    borderRadius: "20px",
-    padding: "20px",
-    maxWidth: "600px",
-    width: "100%",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+    borderRadius: "0px", // full width feel
+    padding: "16px",
   },
 
-  // ✅ NEW HEADER
   header: {
     textAlign: "center",
-    marginBottom: "10px",
+    marginBottom: "12px",
   },
 
   hosts: {
     fontFamily: "Playfair Display, serif",
-    fontSize: "24px",
+    fontSize: "26px",
     fontWeight: "600",
-
-    background: "linear-gradient(90deg, #c6a46c, #e7d3a3)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-
+    color: theme.text,
     letterSpacing: "0.5px",
   },
 
   subtitle: {
-    fontSize: "14px",
+    fontSize: "15px",
     color: theme.text,
-    marginTop: "4px",
+    marginTop: "6px",
     fontStyle: "italic",
+    opacity: 0.8,
   },
 
   tabs: {
     display: "flex",
     justifyContent: "center",
-    gap: "10px",
-    marginBottom: "15px",
+    gap: "8px",
+    marginBottom: "16px",
     marginTop: "10px",
   },
 
@@ -144,12 +142,13 @@ const styles = {
     border: "none",
     cursor: "pointer",
     fontSize: "13px",
+    color: "#555",
   },
 
   activeTab: {
     padding: "6px 12px",
     borderRadius: "20px",
-    background: theme.primary,
+    background: "#c6a46c",
     color: "#fff",
     border: "none",
     fontSize: "13px",
