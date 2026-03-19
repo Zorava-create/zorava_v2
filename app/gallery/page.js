@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient";
 import PhotoModal from "../../components/PhotoModal";
 import { themes } from "../themes";
 import PhotoGrid from "../../components/PhotoGrid";
+import CommentSheet from "../../components/CommentSheet";
 
 const theme = themes.rustic;
 
@@ -83,13 +84,15 @@ export default function GalleryPage() {
       />
 
       {/* COMMENT MODAL (temporary reuse) */}
-      <PhotoModal
-        photos={displayedPhotos}
-        index={commentIndex}
-        onClose={setCommentIndex}
-        commentsOnly
-      />
-
+      <CommentSheet
+  photo={
+    commentIndex !== null
+      ? displayedPhotos[commentIndex]
+      : null
+  }
+  onClose={() => setCommentIndex(null)}
+/>
+  
     </main>
   );
 }
