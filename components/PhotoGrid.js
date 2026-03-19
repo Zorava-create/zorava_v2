@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 export default function PhotoGrid({ photos, onPhotoClick, theme }) {
   const [likedMap, setLikedMap] = useState({});
 
-  // Load liked state
   useEffect(() => {
     const map = {};
     photos.forEach((photo) => {
@@ -44,21 +43,6 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
 
   return (
     <div style={{ ...styles.wrapper, background: theme?.background || "#f8f6f2" }}>
-      
-      {/* HEADER */}
-      <div style={styles.header}>
-        <h1 style={styles.title}>Emma & Jake’s Wedding</h1>
-        <p style={styles.subtitle}>Wedding Album</p>
-
-        {/* TABS */}
-        <div style={styles.tabs}>
-          <span style={styles.activeTab}>All Photos</span>
-          <span style={styles.tab}>Most Loved ❤️</span>
-          <span style={styles.tab}>Highlights</span>
-        </div>
-      </div>
-
-      {/* GRID */}
       <div style={styles.grid}>
         {photos.map((photo, index) => {
           const isLiked = likedMap[photo.id];
@@ -120,48 +104,7 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
 
 const styles = {
   wrapper: {
-    minHeight: "100vh",
     paddingBottom: "80px",
-  },
-
-  header: {
-    padding: "20px 16px 10px",
-  },
-
-  title: {
-    fontFamily: "Playfair Display, serif",
-    fontSize: "20px",
-    fontWeight: "600",
-    color: "#2c2c2c",
-  },
-
-  subtitle: {
-    fontSize: "14px",
-    color: "#8a7f73",
-    marginTop: "2px",
-    fontStyle: "italic",
-  },
-
-  tabs: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "12px",
-  },
-
-  tab: {
-    fontSize: "13px",
-    color: "#8a7f73",
-    padding: "6px 10px",
-    borderRadius: "999px",
-    background: "#eee",
-  },
-
-  activeTab: {
-    fontSize: "13px",
-    color: "#fff",
-    padding: "6px 12px",
-    borderRadius: "999px",
-    background: "#c6a46c",
   },
 
   grid: {
