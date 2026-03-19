@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-export default function PhotoGrid({ photos, onPhotoClick, theme }) {
+export default function PhotoGrid({
+  photos,
+  onPhotoClick,
+  onCommentClick,
+}) {
   const [likedMap, setLikedMap] = useState({});
 
   useEffect(() => {
     const map = {};
     photos.forEach((photo) => {
-      const key = `liked_${photo.id}`;
-      if (localStorage.getItem(key)) {
+      if (localStorage.getItem(`liked_${photo.id}`)) {
         map[photo.id] = true;
       }
     });
@@ -17,32 +20,25 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
   }, [photos]);
 
   const handleLike = (photo) => {
-    const likedKey = `liked_${photo.id}`;
-    const alreadyLiked = likedMap[photo.id];
+    const key = `liked_${photo.id}`;
+    const isLiked = likedMap[photo.id];
 
-    if (alreadyLiked) {
-      localStorage.removeItem(likedKey);
+    if (isLiked) {
+      localStorage.removeItem(key);
       photo.likes = Math.max((photo.likes || 0) - 1, 0);
-
-      setLikedMap((prev) => ({
-        ...prev,
-        [photo.id]: false,
-      }));
-
-      return;
+    } else {
+      localStorage.setItem(key, "true");
+      photo.likes = (photo.likes || 0) + 1;
     }
-
-    localStorage.setItem(likedKey, "true");
-    photo.likes = (photo.likes || 0) + 1;
 
     setLikedMap((prev) => ({
       ...prev,
-      [photo.id]: true,
+      [photo.id]: !isLiked,
     }));
   };
 
   return (
-    <div style={{ ...styles.wrapper, background: theme?.background || "#f8f6f2" }}>
+    <div style={styles.wrapper}>
       <div style={styles.grid}>
         {photos.map((photo, index) => {
           const isLiked = likedMap[photo.id];
@@ -56,42 +52,43 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
                 onClick={() => onPhotoClick(index)}
               >
                 <img
-                  src={`${photo.url}?width=600`}
+                  src={`${photo.url}?width=500`}
                   style={styles.image}
                 />
               </div>
 
-              {/* ACTIONS */}
+              {/* ACTION BAR */}
               <div style={styles.meta}>
                 
-                {/* LIKE */}
-                <button
-                  onClick={() => handleLike(photo)}
-                  style={styles.actionBtn}
-                >
-                  <span
-                    style={{
-                      ...styles.heart,
-                      color: isLiked ? "#d94c5c" : "#888",
-                    }}
+                {/* LEFT SIDE */}
+                <div style={styles.left}>
+                  <button
+                    onClick={() => handleLike(photo)}
+                    style={styles.action}
                   >
-                    ❤️
-                  </span>
-                  <span style={styles.count}>
-                    {photo.likes || 0}
-                  </span>
-                </button>
+                    <span
+                      style={{
+                        ...styles.icon,
+                        color: isLiked ? "#d94c5c" : "#aaa",
+                      }}
+                    >
+                      ❤️
+                    </span>
+                    <span style={styles.count}>
+                      {photo.likes || 0}
+                    </span>
+                  </button>
 
-                {/* COMMENTS */}
-                <button
-                  onClick={() => onPhotoClick(index)}
-                  style={styles.actionBtn}
-                >
-                  <span style={styles.comment}>💬</span>
-                  <span style={styles.count}>
-                    {photo.comment_count || 0}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => onCommentClick(index)}
+                    style={styles.action}
+                  >
+                    <span style={styles.icon}>💬</span>
+                    <span style={styles.count}>
+                      {photo.comment_count || 0}
+                    </span>
+                  </button>
+                </div>
 
               </div>
             </div>
@@ -104,27 +101,30 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
 
 const styles = {
   wrapper: {
-    paddingBottom: "80px",
+    paddingTop: "6px",
   },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "12px",
-    padding: "0 12px",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "10px", // slightly more refined spacing
   },
 
   card: {
     background: "#fff",
     borderRadius: "16px",
     overflow: "hidden",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+
+    // ✨ KEY DIFFERENCE (premium feel)
+    boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
+    transition: "transform 0.15s ease",
   },
 
   imageWrapper: {
     width: "100%",
     aspectRatio: "1 / 1",
-    background: "#eee",
+    background: "#f2f2f2",
+    overflow: "hidden",
   },
 
   image: {
@@ -134,31 +134,30 @@ const styles = {
   },
 
   meta: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "10px 12px",
+    padding: "8px 10px 10px",
   },
 
-  actionBtn: {
+  left: {
     display: "flex",
     alignItems: "center",
-    gap: "6px",
+    gap: "12px",
+  },
+
+  action: {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
     background: "none",
     border: "none",
     cursor: "pointer",
   },
 
-  heart: {
-    fontSize: "16px",
-  },
-
-  comment: {
-    fontSize: "16px",
-    color: "#888",
+  icon: {
+    fontSize: "15px",
   },
 
   count: {
-    fontSize: "13px",
+    fontSize: "12.5px",
     color: "#555",
   },
 };
