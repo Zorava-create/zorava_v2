@@ -69,12 +69,11 @@ export default function CommentSheet({ photo, onClose }) {
       likes: 0,
     },
   ]);
-
-  if (error) {
-    console.error("Comment error:", error);
-    alert("Failed to send comment");
-    return;
-  }
+if (error) {
+  console.error("FULL ERROR:", error);
+  alert(error.message || "Failed to send comment");
+  return;
+}  
 
   localStorage.setItem("zorava_name", finalName);
 
