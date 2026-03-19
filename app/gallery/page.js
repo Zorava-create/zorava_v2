@@ -21,19 +21,30 @@ export default function GalleryPage() {
   useEffect(() => {
     fetchPhotos();
   }, []);
+const fetchPhotos = async () => {
+  const { data: photosData } = await supabase
+    .from("photos")
+    .select("*");
 
-  const fetchPhotos = async () => {
-    const { data } = await supabase.from("photos").select("*");
-    setPhotos(data || []);
-  };
+  if (!photosData) return;
 
-  const displayedPhotos =
-    activeTab === "loved"
-      ? [...photos].sort((a, b) => (b.likes || 0) - (a.likes || 0))
-      : photos;
+  // 🔥 get comment counts
+  const { data: commentsData } = await supabase
+    .from("comments")
+    .select("photo_id");
 
-  const visiblePhotos = displayedPhotos.slice(0, visibleCount);
-  
+  const countMap = {};
+
+  commentsData?.forEach((c) => {
+    countMap[c.photo_id] = (countMap[c.photo_id] || 0) + 1;
+  });
+
+  const photosWithCounts = photosData.map((p) => ({
+    ...p,
+    comment_count: countMap[p.id] || 0,
+  }));
+    setPhotos(photosWithCounts);
+};  
   return (
   <main style={styles.container}>
     
