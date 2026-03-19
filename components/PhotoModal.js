@@ -9,24 +9,63 @@ export default function PhotoModal({ photos, index, onClose }) {
   const photo = photos[index];
 
   const [likes, setLikes] = useState(photo.likes || 0);
+  const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(
+    typeof window !== "undefined"
+      ? localStorage.getItem("zorava_name") || ""
+      : ""
+  );
   const [showComments, setShowComments] = useState(false);
   const [hearts, setHearts] = useState([]);
 
-  // ❤️ LIKE
+  // 🔁 LOAD LIKE STATE
+  useEffect(() => {
+    const likedKey = `liked_${photo.id}`;
+    setLiked(!!localStorage.getItem(likedKey));
+  }, [photo.id]);
+
+  // ❤️ LIKE TOGGLE
   const handleLike = async () => {
+    const likedKey = `liked_${photo.id}`;
+
+    if (liked) {
+      // REMOVE LIKE
+      localStorage.removeItem(likedKey);
+
+      const newLikes = Math.max(likes - 1, 0);
+      setLikes(newLikes);
+      setLiked(false);
+
+      await supabase
+        .from("photos")
+        .update({ likes: newLikes })
+        .eq("id", photo.id);
+
+      return;
+    }
+
+    // ADD LIKE
+    localStorage.setItem(likedKey, "true");
+
     const newLikes = likes + 1;
     setLikes(newLikes);
+    setLiked(true);
 
-    // floating hearts
-    const newHeart = { id: Date.now() };
-    setHearts((prev) => [...prev, newHeart]);
+    // ✨ MULTIPLE FLOATING HEARTS
+    for (let i = 0; i < 4; i++) {
+      const heart = {
+        id: Date.now() + i,
+        left: Math.random() * 60 + 20,
+      };
 
-    setTimeout(() => {
-      setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
-    }, 1000);
+      setHearts((prev) => [...prev, heart]);
+
+      setTimeout(() => {
+        setHearts((prev) => prev.filter((h) => h.id !== heart.id));
+      }, 1000);
+    }
 
     await supabase
       .from("photos")
@@ -53,15 +92,27 @@ export default function PhotoModal({ photos, index, onClose }) {
   const addComment = async () => {
     if (!newComment) return;
 
+    const savedName = name || "Guest";
+
     await supabase.from("comments").insert([
       {
         photo_id: photo.id,
         text: newComment,
-        name: name || "Guest",
+        name: savedName,
       },
     ]);
 
+    localStorage.setItem("zorava_name", savedName);
+
     setNewComment("");
+    fetchComments();
+  };
+
+  // ❌ DELETE COMMENT
+  const deleteComment = async (id, commentName) => {
+    if (commentName !== name) return;
+
+    await supabase.from("comments").delete().eq("id", id);
     fetchComments();
   };
 
@@ -78,50 +129,70 @@ export default function PhotoModal({ photos, index, onClose }) {
 
       {/* FLOATING HEARTS */}
       {hearts.map((h) => (
-        <span key={h.id} style={styles.floatingHeart}>❤️</span>
+        <span
+          key={h.id}
+          style={{
+            ...styles.floatingHeart,
+            left: `${h.left}%`,
+          }}
+        >
+          ❤️
+        </span>
       ))}
 
       {/* ACTION BAR */}
       <div style={styles.actions}>
-        <span onClick={handleLike} style={styles.icon}>
+        <span
+          onClick={handleLike}
+          style={{
+            ...styles.icon,
+            color: liked ? "#ff4d6d" : "#fff",
+          }}
+        >
           ❤️ {likes}
         </span>
 
-        <span onClick={() => setShowComments(true)} style={styles.icon}>
+        <span onClick={() => setShowComments(!showComments)} style={styles.icon}>
           💬 {comments.length}
         </span>
       </div>
 
-      {/* COMMENTS PANEL */}
+      {/* COMMENT POPUP */}
       {showComments && (
-        <div style={styles.commentPanel}>
+        <div style={styles.commentPopup}>
           
-          <button style={styles.closePanel} onClick={() => setShowComments(false)}>
-            ✕
-          </button>
-
           <div style={styles.commentList}>
             {comments.map((c) => (
-              <p key={c.id}>
-                <strong>{c.name || "Guest"}:</strong> {c.text}
-              </p>
+              <div key={c.id} style={styles.commentRow}>
+                <p>
+                  <strong>{c.name}:</strong> {c.text}
+                </p>
+
+                {c.name === name && (
+                  <button
+                    onClick={() => deleteComment(c.id, c.name)}
+                    style={styles.delete}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             ))}
           </div>
 
-          <div style={styles.inputRow}>
-            <input
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <input
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button onClick={addComment}>Send</button>
-          </div>
+          <input
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
+          <input
+            placeholder="Write a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          />
+
+          <button onClick={addComment}>Send</button>
         </div>
       )}
 
@@ -164,7 +235,7 @@ const styles = {
     bottom: "20px",
     left: "20px",
     display: "flex",
-    gap: "15px",
+    gap: "20px",
     color: "#fff",
     fontSize: "18px",
   },
@@ -175,35 +246,41 @@ const styles = {
 
   floatingHeart: {
     position: "absolute",
-    bottom: "50%",
-    fontSize: "30px",
+    bottom: "40%",
+    fontSize: "26px",
     animation: "floatUp 1s ease-out forwards",
   },
 
-  commentPanel: {
+  commentPopup: {
     position: "absolute",
-    bottom: 0,
-    width: "100%",
-    background: "#111",
-    padding: "15px",
-    color: "#fff",
-  },
-
-  closePanel: {
-    position: "absolute",
-    right: "10px",
-    top: "10px",
+    bottom: "80px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#222",
+    padding: "12px",
+    borderRadius: "12px",
+    width: "90%",
+    maxWidth: "320px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
   },
 
   commentList: {
-    maxHeight: "200px",
+    maxHeight: "150px",
     overflowY: "auto",
-    marginBottom: "10px",
   },
 
-  inputRow: {
+  commentRow: {
     display: "flex",
-    flexDirection: "column",
-    gap: "5px",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  delete: {
+    background: "none",
+    border: "none",
+    color: "red",
+    cursor: "pointer",
   },
 };
