@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabaseClient";
 import PhotoModal from "../../components/PhotoModal";
 import { themes } from "../themes";
 
-const theme = themes.luxe;
+const theme = themes.rustic;
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState([]);
