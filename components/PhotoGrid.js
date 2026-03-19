@@ -16,6 +16,7 @@ export default function PhotoGrid({ photos, onPhotoClick, theme }) {
           key={photo.id}
           src={photo.url}
           alt=""
+          loading="lazy"
           style={styles.image}
           onClick={() => onPhotoClick(index)}
         />
