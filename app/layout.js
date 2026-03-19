@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: "Zorava",
   description: "Wedding photo sharing",
