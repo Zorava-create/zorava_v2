@@ -42,12 +42,24 @@ export default function UploadPage() {
         .from("photos")
         .getPublicUrl(filePath);
 
-      await supabase.from("photos").insert({
-        event_id: "null",
-        url: data.publicUrl,
-        likes: 0,
-      });
-    }
+      const { data: insertData, error: dbError } = await supabase
+  .from("photos")
+  .insert([
+    {
+      event_id: null,
+      url: data.publicUrl,
+      likes: 0,
+    },
+  ])
+  .select();
+
+console.log("INSERT RESULT:", insertData);
+console.log("DB ERROR:", dbError);
+
+if (dbError) {
+  alert("DB ERROR: " + dbError.message);
+}
+
 
     setUploading(false);
     setDone(true);
