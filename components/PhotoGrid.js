@@ -6,158 +6,190 @@ export default function PhotoGrid({
   photos,
   onPhotoClick,
   onCommentClick,
+  onToggleLike,
+  theme,
 }) {
   const [likedMap, setLikedMap] = useState({});
+  const [loadingLikes, setLoadingLikes] = useState({}); // 🔥 prevent spam taps
 
   useEffect(() => {
-    const map = {};
-    photos.forEach((photo) => {
-      if (localStorage.getItem(`liked_${photo.id}`)) {
-        map[photo.id] = true;
+    const nextLikedMap = photos.reduce((acc, photo) => {
+      if (
+        typeof window !== "undefined" &&
+        localStorage.getItem(`liked_${photo.id}`)
+      ) {
+        acc[photo.id] = true;
       }
-    });
-    setLikedMap(map);
+      return acc;
+    }, {});
+
+    setLikedMap(nextLikedMap);
   }, [photos]);
 
-  const handleLike = (photo) => {
-    const key = `liked_${photo.id}`;
-    const isLiked = likedMap[photo.id];
+  const handleLikeClick = async (photoId) => {
+    if (loadingLikes[photoId]) return; // 🔥 prevent double tap
 
-    if (isLiked) {
-      localStorage.removeItem(key);
-      photo.likes = Math.max((photo.likes || 0) - 1, 0);
-    } else {
-      localStorage.setItem(key, "true");
-      photo.likes = (photo.likes || 0) + 1;
-    }
+    const storageKey = `liked_${photoId}`;
+    const isLiked = !!likedMap[photoId];
+    const shouldLike = !isLiked;
 
+    // optimistic UI
     setLikedMap((prev) => ({
       ...prev,
-      [photo.id]: !isLiked,
+      [photoId]: shouldLike,
+    }));
+
+    setLoadingLikes((prev) => ({
+      ...prev,
+      [photoId]: true,
+    }));
+
+    if (shouldLike) {
+      localStorage.setItem(storageKey, "true");
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+
+    try {
+      await onToggleLike(photoId, shouldLike);
+    } catch (err) {
+      // rollback on failure
+      setLikedMap((prev) => ({
+        ...prev,
+        [photoId]: isLiked,
+      }));
+
+      if (isLiked) {
+        localStorage.setItem(storageKey, "true");
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    }
+
+    setLoadingLikes((prev) => ({
+      ...prev,
+      [photoId]: false,
     }));
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.grid}>
-        {photos.map((photo, index) => {
-          const isLiked = likedMap[photo.id];
+    <div style={styles.grid}>
+      {photos.map((photo, index) => {
+        const isLiked = !!likedMap[photo.id];
 
-          return (
-            <div key={photo.id} style={styles.card}>
+        return (
+          <article key={photo.id} style={styles.card(theme)}>
+            
+            {/* IMAGE */}
+            <button
+              type="button"
+              style={styles.imageButton}
+              onClick={() => onPhotoClick(index)}
+            >
+              <img
+                src={photo.url}
+                alt="Wedding gallery"
+                style={styles.image}
+              />
+            </button>
+
+            {/* ACTIONS */}
+            <div style={styles.actionsRow}>
               
-              {/* IMAGE */}
-              <div
-                style={styles.imageWrapper}
-                onClick={() => onPhotoClick(index)}
+              {/* LIKE */}
+              <button
+                type="button"
+                onClick={() => handleLikeClick(photo.id)}
+                style={styles.actionButton}
               >
-                <img
-                  src={`${photo.url}?width=500`}
-                  style={styles.image}
-                />
-              </div>
+                <span style={styles.actionIcon(isLiked)}>
+                  ❤️
+                </span>
+                <span style={styles.actionCount}>
+                  {photo.likes || 0}
+                </span>
+              </button>
 
-              {/* ACTION BAR */}
-              <div style={styles.meta}>
-                
-                {/* LEFT SIDE */}
-                <div style={styles.left}>
-                  <button
-                    onClick={() => handleLike(photo)}
-                    style={styles.action}
-                  >
-                    <span
-                      style={{
-                        ...styles.icon,
-                        color: isLiked ? "#d94c5c" : "#aaa",
-                      }}
-                    >
-                      ❤️
-                    </span>
-                    <span style={styles.count}>
-                      {photo.likes || 0}
-                    </span>
-                  </button>
+              {/* COMMENT */}
+              <button
+                type="button"
+                onClick={() => onCommentClick(index)}
+                style={styles.actionButton}
+              >
+                <span style={styles.commentIcon(theme)}>
+                  💬
+                </span>
+                <span style={styles.actionCount}>
+                  {photo.comment_count || 0}
+                </span>
+              </button>
 
-                  <button
-                    onClick={() => onCommentClick(index)}
-                    style={styles.action}
-                  >
-                    <span style={styles.icon}>💬</span>
-                    <span style={styles.count}>
-                      {photo.comment_count || 0}
-                    </span>
-                  </button>
-                </div>
-
-              </div>
             </div>
-          );
-        })}
-      </div>
+          </article>
+        );
+      })}
     </div>
   );
 }
 
 const styles = {
-  wrapper: {
-    paddingTop: "6px",
-  },
-
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "10px", // slightly more refined spacing
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: "10px",
   },
 
-  card: {
-    background: "#fff",
-    borderRadius: "16px",
+  card: (theme) => ({
+    background: theme?.card || "#fff",
+    borderRadius: "18px",
     overflow: "hidden",
+    boxShadow: "0 10px 26px rgba(31, 24, 17, 0.08)",
+  }),
 
-    // ✨ KEY DIFFERENCE (premium feel)
-    boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
-    transition: "transform 0.15s ease",
-  },
-
-  imageWrapper: {
+  imageButton: {
     width: "100%",
+    border: "none",
+    background: "#f1eeea",
+    padding: 0,
     aspectRatio: "1 / 1",
-    background: "#f2f2f2",
-    overflow: "hidden",
+    cursor: "pointer",
   },
 
   image: {
     width: "100%",
     height: "100%",
     objectFit: "cover",
+    display: "block",
   },
 
-  meta: {
-    padding: "8px 10px 10px",
+  actionsRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "10px 10px 12px",
   },
 
-  left: {
+  actionButton: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-  },
-
-  action: {
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-    background: "none",
+    gap: "6px",
     border: "none",
+    background: "transparent",
     cursor: "pointer",
+    fontWeight: 600,
   },
 
-  icon: {
-    fontSize: "15px",
-  },
+  actionIcon: (isLiked) => ({
+    fontSize: "1rem",
+    color: isLiked ? "#de5d72" : "#b8ada7",
+    transition: "transform 0.15s ease", // ✨ subtle polish
+  }),
 
-  count: {
-    fontSize: "12.5px",
-    color: "#555",
+  commentIcon: (theme) => ({
+    fontSize: "1rem",
+    color: theme?.primary || "#7a8b6f",
+  }),
+
+  actionCount: {
+    fontSize: "0.88rem",
   },
 };
