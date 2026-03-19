@@ -25,17 +25,25 @@ export default function GalleryPage() {
   // 👉 Sort for Most Loved
   const displayedPhotos =
     activeTab === "loved"
-      ? [...photos].sort((a, b) => b.likes - a.likes)
+      ? [...photos].sort((a, b) => (b.likes || 0) - (a.likes || 0))
       : photos;
 
   return (
     <main style={styles.container}>
       
-      {/* CARD */}
+      {/* CARD CONTAINER */}
       <div style={styles.card}>
 
-        {/* TITLE */}
-        <h2 style={styles.title}>Wedding Album</h2>
+        {/* ✅ PREMIUM HEADER */}
+        <div style={styles.header}>
+          <h1 style={styles.hosts}>
+            Emma & Jake
+          </h1>
+
+          <p style={styles.subtitle}>
+            Wedding Album
+          </p>
+        </div>
 
         {/* TABS */}
         <div style={styles.tabs}>
@@ -63,7 +71,7 @@ export default function GalleryPage() {
           photos={displayedPhotos}
           onPhotoClick={(index) => setSelectedIndex(index)}
           theme={theme}
-          />
+        />
 
       </div>
 
@@ -93,12 +101,32 @@ const styles = {
     padding: "20px",
     maxWidth: "600px",
     width: "100%",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
   },
 
-  title: {
+  // ✅ NEW HEADER
+  header: {
     textAlign: "center",
-    color: theme.text,
     marginBottom: "10px",
+  },
+
+  hosts: {
+    fontFamily: "Playfair Display, serif",
+    fontSize: "24px",
+    fontWeight: "600",
+
+    background: "linear-gradient(90deg, #c6a46c, #e7d3a3)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+
+    letterSpacing: "0.5px",
+  },
+
+  subtitle: {
+    fontSize: "14px",
+    color: theme.text,
+    marginTop: "4px",
+    fontStyle: "italic",
   },
 
   tabs: {
@@ -106,6 +134,7 @@ const styles = {
     justifyContent: "center",
     gap: "10px",
     marginBottom: "15px",
+    marginTop: "10px",
   },
 
   tab: {
@@ -114,6 +143,7 @@ const styles = {
     background: "#eee",
     border: "none",
     cursor: "pointer",
+    fontSize: "13px",
   },
 
   activeTab: {
@@ -122,25 +152,6 @@ const styles = {
     background: theme.primary,
     color: "#fff",
     border: "none",
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "8px",
-  },
-
-  image: {
-    width: "100%",
-    borderRadius: "10px",
-    cursor: "pointer",
-  },
-
-  bottomBar: {
-    display: "flex",
-    justifyContent: "space-around",
-    marginTop: "15px",
-    fontSize: "14px",
-    color: theme.text,
+    fontSize: "13px",
   },
 };
