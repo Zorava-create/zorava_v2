@@ -156,11 +156,14 @@ export default function CommentSheet({ photo, onClose }) {
 
 const styles = {
   overlay: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 2000,
-  },
-
+  position: "fixed",
+  inset: 0,
+  zIndex: 2000,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-end",
+},
+  
   backdrop: {
     position: "absolute",
     inset: 0,
@@ -168,22 +171,21 @@ const styles = {
   },
 
   sheet: {
-    position: "absolute",
-    bottom: "10px", // 👈 space from edges
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "94%", // 👈 not full width
-    maxHeight: "75%",
+  width: "46%", // 👈 smaller
+  maxWidth: "500px", // 👈 prevents overflow on large screens
+  maxHeight: "70%",
 
-    background: "#fff",
-    borderRadius: "24px", // 👈 more premium curve
+  background: "#fff",
+  borderRadius: "24px",
 
-    display: "flex",
-    flexDirection: "column",
+  marginBottom: "12px",
 
-    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-  },
+  display: "flex",
+  flexDirection: "column",
 
+  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+},
+  
   handle: {
     width: "42px",
     height: "5px",
