@@ -64,13 +64,6 @@ export default function GalleryPage() {
           onPhotoClick={(index) => setSelectedIndex(index)}
           theme={theme}
           />
-            
-        {/* BOTTOM BAR */}
-        <div style={styles.bottomBar}>
-          <span>❤️ Most Loved</span>
-          <span>🎞 Slideshow</span>
-          <span>🔴 Live Feed</span>
-        </div>
 
       </div>
 
