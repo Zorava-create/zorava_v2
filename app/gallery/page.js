@@ -6,6 +6,7 @@ import PhotoModal from "../../components/PhotoModal";
 import { themes } from "../themes";
 import PhotoGrid from "../../components/PhotoGrid";
 import CommentSheet from "../../components/CommentSheet";
+import { useRouter } from "next/navigation";
 
 const theme = themes.rustic;
 
