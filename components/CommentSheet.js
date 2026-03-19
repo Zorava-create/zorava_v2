@@ -142,6 +142,7 @@ export default function CommentSheet({ photo, onClose }) {
           transform: `translateY(${translateY}px)`,
           transition: "transform 0.25s ease",
         }}
+        onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
