@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import imageCompression from "browser-image-compression";
 import { supabase } from "../../../lib/supabaseClient";
 
 export default function UploadPage() {
@@ -55,15 +54,6 @@ export default function UploadPage() {
       .join("");
   }
 
-  // 🗜 COMPRESS
-  async function compressImage(file) {
-    return await imageCompression(file, {
-      maxSizeMB: 1.2,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
-    });
-  }
-
   // 🔁 RETRY UPLOAD
   async function uploadWithRetry(path, file) {
     let { error } = await supabase.storage
@@ -104,8 +94,7 @@ export default function UploadPage() {
       // (You can reintroduce if you add image_hash column)
 
       // 🗜 COMPRESS
-      const compressed = await compressImage(file);
-
+      const compressed = file;
       const filePath = `${eventId}/${crypto.randomUUID()}-${file.name.replace(/\s+/g, "_")}`;
 
       // 📤 UPLOAD
